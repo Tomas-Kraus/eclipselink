@@ -66,14 +66,14 @@ if [ -n "${FLAG_T}" ]; then
     case "${FLAG_T}" in
         srg) readonly TEST_PROFILE='test-srg';;
         lrg) readonly TEST_PROFILE='test-lrg';;
-        core-srg) readonly TEST_PROFILE='test-core-srg'
+        core-srg) readonly TEST_PROFILE='test-core-srg' && \
                   readonly TEST_MODULE='org.eclipse.persistence.core.test';;
-        core-lrg) readonly TEST_PROFILE='test-core-lrg'
+        core-lrg) readonly TEST_PROFILE='test-core-lrg' && \
                   readonly TEST_MODULE='org.eclipse.persistence.core.test';;
         *) echo 'ERROR: Unknown tests name, exitting.' && exit 1;;
     esac
     readonly MVN_TEST="-P${TEST_PROFILE}"
-    if [ -n ${TEST_MODULE} ]; then
+    if [ -n "${TEST_MODULE}" ]; then
         readonly MVN_MODULE="-pl :${TEST_MODULE}"
     fi
 else
