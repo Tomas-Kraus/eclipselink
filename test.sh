@@ -28,7 +28,7 @@ test_on_error() {
 error_trap_setup 'test_on_error'
 
 print_help() {
-    echo 'Usage: test.sh [-hcjn] -d <database>'
+    echo 'Usage: test.sh [-hc] -d <database> -t <tests>'
     echo ''
     echo '  -h print this help and exit'
     echo '  -c start and stop Docker containers'
@@ -94,7 +94,7 @@ if [ -n "${FLAG_C}" ]; then
     #docker logs -f ${DOCKER_CONT_NAME}
 fi
 
-set -x
+set -x && \
 mvn ${MVN_TEST} -P${FLAG_D} ${MVN_MODULE} \
     -Ddb.driver="${DB_DRIVER}" \
     -Ddb.xa.driver="${DB_XA_DRIVER}" \
@@ -106,7 +106,7 @@ mvn ${MVN_TEST} -P${FLAG_D} ${MVN_MODULE} \
     -Ddatasource.type="${DATASOURCE_TYPE}" \
     -Ddatasource.transactionsupport="${DATASOURCE_TX_SUPPORT}" \
     -Dlogging.level="${LOGGING_LEVEL}" \
-    verify
+    verify && \
 set +x
 
 # Stop docker Container
