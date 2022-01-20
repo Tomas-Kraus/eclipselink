@@ -197,6 +197,11 @@ public class MySQLPlatform extends DatabasePlatform {
         fieldTypeMapping.put(java.sql.Blob.class, new FieldTypeDefinition("LONGBLOB", false));
         fieldTypeMapping.put(java.sql.Clob.class, new FieldTypeDefinition("LONGTEXT", false));
 
+        // Mapping for JSON type set in JsonTypeConverter#initialize. Default size set to handle large JSON values.
+        fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("JSON"));
+        fieldTypeMapping.put(jakarta.json.JsonArray.class, new FieldTypeDefinition("JSON"));
+        fieldTypeMapping.put(jakarta.json.JsonValue.class, new FieldTypeDefinition("JSON"));
+
         fieldTypeMapping.put(java.sql.Date.class, new FieldTypeDefinition("DATE", false));
         FieldTypeDefinition fd = new FieldTypeDefinition("TIME");
         if (!isFractionalTimeSupported) {
