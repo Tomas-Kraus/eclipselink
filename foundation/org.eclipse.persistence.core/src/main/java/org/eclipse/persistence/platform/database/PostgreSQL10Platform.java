@@ -198,6 +198,9 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) throws PersistenceException {
+        if (jsonValue == null) {
+            return null;
+        }
         final String jsonAsString = super.convertJsonValueToDataValue(jsonValue);
         // Following code is called through reflection to avoid PGobject dependency
         try {

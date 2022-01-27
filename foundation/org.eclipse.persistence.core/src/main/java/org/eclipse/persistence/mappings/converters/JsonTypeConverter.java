@@ -58,10 +58,7 @@ public class JsonTypeConverter implements Converter {
      */
     @Override
     public Object convertDataValueToObjectValue(Object jdbcValue, Session session) {
-        if (jdbcValue instanceof String) {
-            return session.getPlatform().convertDataValueToJsonValue(jdbcValue);
-        }
-        throw new IllegalArgumentException("Source object is not an instance of String");
+        return session.getPlatform().convertDataValueToJsonValue(jdbcValue);
     }
 
     /**

@@ -216,5 +216,16 @@
                 <test-skip-jpa-jse>false</test-skip-jpa-jse>
             </properties>
         </profile>
+        <profile>
+            <id>oracle</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.persistence</groupId>
+                    <artifactId>org.eclipse.persistence.oracle</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
+
 </project>

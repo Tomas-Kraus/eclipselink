@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,6 +13,9 @@
 module org.eclipse.persistence.oracle {
 
     requires transitive org.eclipse.persistence.core;
+    requires transitive jakarta.persistence;
+    requires transitive jakarta.json;
+    requires transitive com.oracle.database.jdbc;
 
     exports org.eclipse.persistence.platform.database.oracle;
     exports org.eclipse.persistence.platform.database.oracle.converters;

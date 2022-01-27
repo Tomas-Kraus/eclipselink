@@ -3794,6 +3794,9 @@ public class DatabasePlatform extends DatasourcePlatform {
      */
     @SuppressWarnings("unchecked")
     public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) {
+        if (jsonValue == null) {
+            return null;
+        }
         final StringWriter sw = new StringWriter(128);
         try (final JsonWriter jw = Json.createWriter(sw)) {
             jw.write(jsonValue);
@@ -3808,6 +3811,9 @@ public class DatabasePlatform extends DatasourcePlatform {
      * @return converted JSON field value
      */
     public JsonValue convertDataValueToJsonValue(Object jdbcValue) {
+        if (jdbcValue == null) {
+            return null;
+        }
         try (final JsonReader jr = Json.createReader(new StringReader((String)jdbcValue))) {
             return jr.readValue();
         }
