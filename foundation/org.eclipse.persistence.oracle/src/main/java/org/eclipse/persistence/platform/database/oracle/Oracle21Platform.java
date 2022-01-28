@@ -101,7 +101,6 @@ public class Oracle21Platform extends Oracle19Platform {
             final Object parameter, final PreparedStatement statement,
             final int index, final AbstractSession session
     ) throws SQLException {
-        // Instance check is called through reflection to avoid PGobject dependency
         if (parameter instanceof OracleJsonValue) {
             statement.setObject(index, parameter, OracleType.JSON);
         } else {
@@ -125,7 +124,6 @@ public class Oracle21Platform extends Oracle19Platform {
             final Object parameter, final CallableStatement statement,
             final String name, final AbstractSession session
     ) throws SQLException {
-        // Instance check is called through reflection to avoid PGobject dependency
         if (parameter instanceof OracleJsonValue) {
             statement.setObject(name, parameter, OracleType.JSON);
         } else {
@@ -133,8 +131,8 @@ public class Oracle21Platform extends Oracle19Platform {
         }
     }
 
-    // Postgres specific JSON types support:
-    // Stores JsonValue instances as JSONB.
+    // Oracle 21c specific JSON types support:
+    // Stores JsonValue instances as JSON.
     /**
      * INTERNAL:
      * Convert JSON value field to JDBC statement type.
@@ -162,6 +160,7 @@ public class Oracle21Platform extends Oracle19Platform {
     }
 
     /**
+     * INTERNAL:
      * Convert JDBC {@code ResultSet} type to JSON value field.
      *
      * @param jdbcValue source classification type value from JDBC
@@ -174,7 +173,7 @@ public class Oracle21Platform extends Oracle19Platform {
         if (jdbcValue instanceof OracleJsonValue) {
         // Depends on javax.json, not jakarta.json!
         //    return ((OracleJsonValue) jdbcValue).wrap(JsonValue.class);
-            try (final JsonReader jr = Json.createReader(new StringReader(((OracleJsonValue) jdbcValue).toString()))) {
+            try (final JsonReader jr = Json.createReader(new StringReader(jdbcValue.toString()))) {
                 return jr.readValue();
             }
         }
@@ -183,8 +182,8 @@ public class Oracle21Platform extends Oracle19Platform {
 
     /**
      * Retrieve JSON data from JDBC {@code ResultSet}.
-     * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code PGobject} instance.
-     * It must be converted to {@code String} first to be accepted by common {@code JsonTypeConverter}.
+     * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code OracleJsonValue} instance.
+     * {@code JsonTypeConverter} will convert {@code OracleJsonValue} to {@code JsonValue}.
      *
      * @param resultSet source JDBC {@code ResultSet}
      * @param columnNumber index of column in JDBC {@code ResultSet}

@@ -210,7 +210,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
         }
     }
 
-    // Default resultSet.getObject(columnNumber); call works too.
+    // Default resultSet.getString(columnNumber); call works too.
     /**
      * Retrieve JSON data from JDBC {@code ResultSet}.
      * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code PGobject} instance.

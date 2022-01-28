@@ -14,7 +14,7 @@
 //     13/01/2022-4.0.0 Tomas Kraus - 1391: JSON support in JPA
 package org.eclipse.persistence.internal.jpa.metadata.converters;
 
-import java.io.Serializable;
+import jakarta.json.JsonValue;
 
 import org.eclipse.persistence.exceptions.ValidationException;
 import org.eclipse.persistence.internal.jpa.metadata.accessors.mappings.MappingAccessor;
@@ -22,6 +22,10 @@ import org.eclipse.persistence.internal.jpa.metadata.accessors.objects.MetadataC
 import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.eclipse.persistence.mappings.converters.JsonTypeConverter;
 
+/**
+ * INTERNAL:
+ * This class processes JSON converter.
+ */
 public class JsonValueMetadata extends MetadataConverter {
 
     /**
@@ -29,12 +33,11 @@ public class JsonValueMetadata extends MetadataConverter {
      * Used for defaulting case.
      */
     public JsonValueMetadata() {
-
     }
 
     @Override
     public boolean equals(Object objectToCompare) {
-        return super.equals(objectToCompare) && objectToCompare instanceof SerializedMetadata;
+        return super.equals(objectToCompare) && objectToCompare instanceof JsonValueMetadata;
     }
 
     @Override
@@ -44,7 +47,7 @@ public class JsonValueMetadata extends MetadataConverter {
 
     @Override
     public void process(DatabaseMapping mapping, MappingAccessor accessor, MetadataClass referenceClass, boolean isForMapKey) {
-        if (accessor.getReferenceClass().extendsInterface(Serializable.class)
+        if (accessor.getReferenceClass().extendsInterface(JsonValue.class)
                 || accessor.getReferenceClass().isArray()
                 || accessor.getReferenceClass().isInterface()) {
             setConverter(mapping, new JsonTypeConverter(), isForMapKey);
