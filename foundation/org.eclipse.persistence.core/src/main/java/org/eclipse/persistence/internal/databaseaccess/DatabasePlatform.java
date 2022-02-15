@@ -3806,6 +3806,8 @@ public class DatabasePlatform extends DatasourcePlatform {
 
     /**
      * Convert JDBC {@code ResultSet} type to JSON value field.
+     * This method consumes value returned by {@link Object getJsonDataFromResultSet(ResultSet, int)}.
+     * Both methods must be overwritten by platform specific code when jdbcValue is not String.
      *
      * @param jdbcValue source classification type value from JDBC
      * @return converted JSON field value

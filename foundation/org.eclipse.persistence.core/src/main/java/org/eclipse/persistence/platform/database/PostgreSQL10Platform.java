@@ -28,6 +28,7 @@ import jakarta.json.JsonValue;
 import jakarta.persistence.PersistenceException;
 
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
+import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
 
 /**
@@ -80,7 +81,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
 
         private boolean isInstance(final Object o) {
             if (classReference == null) {
-                throw new PersistenceException("Missing " + this.className + " on classpath");
+                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_missing_class_on_classpath", new Object[] {this.className}));
             }
             return classReference.isInstance(o);
         }
@@ -88,7 +89,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
         private Object newPgObject(final String value)
                 throws InvocationTargetException, IllegalAccessException, InstantiationException {
             if (classReference == null) {
-                throw new PersistenceException("Missing " + this.className + " on classpath");
+                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_missing_class_on_classpath", new Object[] {this.className}));
             }
             final Object pgObject = constructor.newInstance();
             setType.invoke(pgObject, JSON_DEFAULT_TYPE);
@@ -97,6 +98,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
         }
 
         private String getValue(final Object pgObject) throws InvocationTargetException, IllegalAccessException {
+            // No classReference null check is required because this method is always called after isInstance.
             return (String) getValue.invoke(pgObject);
         }
 
@@ -206,7 +208,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
         try {
             return (T) PgObjectAccessor.PG_OBJECT_ACCESSOR.newPgObject(jsonAsString);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new PersistenceException("JSON value to database type conversion failed.", e);
+            throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_jsonvalue_to_database_type"), e);
         }
     }
 
@@ -230,13 +232,13 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
             try {
                 return PgObjectAccessor.PG_OBJECT_ACCESSOR.getValue(rawData);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new PersistenceException("Database PGobject conversion failed.", e);
+                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_pgobject_conversion"), e);
             }
         // Fallback option when String value is returned.
         } else if (rawData instanceof String) {
             return rawData;
         }
-        throw new PersistenceException("Unknown JSON type returned from database");
+        throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_unknown_type"));
     }
 
 }

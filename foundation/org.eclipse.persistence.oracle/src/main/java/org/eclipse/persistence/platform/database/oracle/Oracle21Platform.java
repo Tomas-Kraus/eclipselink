@@ -37,6 +37,7 @@ import oracle.jdbc.OracleType;
 import oracle.sql.json.OracleJsonFactory;
 import oracle.sql.json.OracleJsonValue;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
+import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
 
 /**
@@ -155,7 +156,7 @@ public class Oracle21Platform extends Oracle19Platform {
         try (final Reader jr = new StringReader(sw.toString())) {
             return (T) factory.createJsonTextValue(jr);
         } catch (IOException e) {
-            throw new PersistenceException("Could not convert JsonValue to OracleJsonValue", e);
+            throw new PersistenceException(ExceptionLocalization.buildMessage("json_ora21c_jsonvalue_to_oraclevalue"), e);
         }
     }
 
@@ -170,6 +171,11 @@ public class Oracle21Platform extends Oracle19Platform {
         if (jdbcValue == null) {
             return null;
         }
+        // FIXME: This will be used when ojdbc adds support for getObject(columnNumber, JsonValue.class)
+        if (jdbcValue instanceof JsonValue) {
+            return (JsonValue) jdbcValue;
+        }
+        // FIXME/PERF: Remove after ojdbc adds support for getObject(columnNumber, JsonValue.class)
         if (jdbcValue instanceof OracleJsonValue) {
         // Depends on javax.json, not jakarta.json!
         //    return ((OracleJsonValue) jdbcValue).wrap(JsonValue.class);
@@ -177,7 +183,7 @@ public class Oracle21Platform extends Oracle19Platform {
                 return jr.readValue();
             }
         }
-        throw new PersistenceException("Could not convert JDBC ResultSet type to JsonValue");
+        throw new PersistenceException(ExceptionLocalization.buildMessage("json_ora21c_resultset_to_jsonvalue"));
     }
 
     /**
@@ -192,6 +198,7 @@ public class Oracle21Platform extends Oracle19Platform {
      */
     @Override
     public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
+        // FIXME: Use JsonValue.class when ojdbc adds supoprt for it (planned in next release)
         return resultSet.getObject(columnNumber, OracleJsonValue.class);
     }
 

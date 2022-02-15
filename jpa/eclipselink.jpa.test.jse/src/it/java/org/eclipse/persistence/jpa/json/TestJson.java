@@ -30,7 +30,9 @@ import org.eclipse.persistence.jpa.test.framework.DDLGen;
 import org.eclipse.persistence.jpa.test.framework.Emf;
 import org.eclipse.persistence.jpa.test.framework.EmfRunner;
 import org.eclipse.persistence.jpa.test.framework.Property;
+import org.eclipse.persistence.sessions.Session;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -73,7 +75,8 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
             em.clear();
 
             JsonEntity dbValue = em.createQuery("SELECT v FROM JsonEntity v WHERE v.id=:id", JsonEntity.class)
-                    .setParameter("id", e.getId()).getSingleResult();
+                    .setParameter("id", e.getId())
+                    .getSingleResult();
             Assert.assertEquals(value, dbValue.getValue());
         } finally {
             if (em.getTransaction().isActive()) {
@@ -102,7 +105,8 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
             em.clear();
 
             JsonEntity dbValue = em.createQuery("SELECT v FROM JsonEntity v WHERE v.id=:id", JsonEntity.class)
-                    .setParameter("id", e.getId()).getSingleResult();
+                    .setParameter("id", e.getId())
+                    .getSingleResult();
             Assert.assertEquals(value, dbValue.getValue());
         } finally {
             if (em.getTransaction().isActive()) {
@@ -132,7 +136,8 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
 
             JsonObjectEntity dbValue = em.createQuery(
                     "SELECT v FROM JsonObjectEntity v WHERE v.id=:id", JsonObjectEntity.class)
-                    .setParameter("id", e.getId()).getSingleResult();
+                    .setParameter("id", e.getId())
+                    .getSingleResult();
             Assert.assertEquals(value, dbValue.getValue());
         } finally {
             if (em.getTransaction().isActive()) {
@@ -162,7 +167,8 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
 
             JsonArrayEntity dbValue = em.createQuery(
                             "SELECT v FROM JsonArrayEntity v WHERE v.id=:id", JsonArrayEntity.class)
-                    .setParameter("id", e.getId()).getSingleResult();
+                    .setParameter("id", e.getId())
+                    .getSingleResult();
             Assert.assertEquals(value, dbValue.getValue());
         } catch (Throwable t) {
             t.printStackTrace();
@@ -193,7 +199,7 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
         EntityManager em = emf.createEntityManager();
 
         JsonValue value = Json.createObjectBuilder()
-                .add("id", "1001")
+                .add("id", "1005")
                 .add("name", "Joe Wright")
                 .add("age", 49)
                 .build();
@@ -210,10 +216,41 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
 
             JsonValueWithConverter dbValue = em.createQuery(
                     "SELECT v FROM JsonValueWithConverter v WHERE v.id=:id", JsonValueWithConverter.class)
-                    .setParameter("id", e.getId()).getSingleResult();
+                    .setParameter("id", e.getId())
+                    .getSingleResult();
             Assert.assertEquals(value, dbValue.getValue());
             Assert.assertTrue(usedToDatabaseColumn);
             Assert.assertTrue(usedToEntityAttribute);
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    @Test
+    public void testSelectJsonInWhereCondition() {
+        Assume.assumeFalse(
+                "JsonValue does not work in WHERE clause condition with MySQL",
+                emf.unwrap(Session.class).getPlatform().isMySQL());
+        EntityManager em = emf.createEntityManager();
+
+        JsonValue value = Json.createObjectBuilder()
+                .add("id", "1006")
+                .build();
+        try {
+            em.getTransaction().begin();
+            JsonEntity e = new JsonEntity(1006, value);
+            em.persist(e);
+            em.flush();
+            em.getTransaction().commit();
+            em.clear();
+            JsonEntity dbValue = em.createQuery(
+                    "SELECT v FROM JsonEntity v WHERE v.value = :value", JsonEntity.class)
+                    .setParameter("value", value)
+                    .getSingleResult();
+            Assert.assertEquals(value, dbValue.getValue());
         } finally {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
