@@ -29,6 +29,7 @@ package org.eclipse.persistence.platform.database;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -40,6 +41,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import jakarta.json.JsonValue;
+
 import org.eclipse.persistence.exceptions.ValidationException;
 import org.eclipse.persistence.expressions.ExpressionOperator;
 import org.eclipse.persistence.internal.databaseaccess.DatabaseCall;
@@ -47,6 +50,7 @@ import org.eclipse.persistence.internal.databaseaccess.DatasourcePlatform;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.expressions.ExpressionSQLPrinter;
 import org.eclipse.persistence.internal.expressions.FunctionExpression;
+import org.eclipse.persistence.internal.expressions.ParameterExpression;
 import org.eclipse.persistence.internal.expressions.SQLSelectStatement;
 import org.eclipse.persistence.internal.helper.ClassConstants;
 import org.eclipse.persistence.internal.helper.DatabaseField;
@@ -760,6 +764,22 @@ public class MySQLPlatform extends DatabasePlatform {
         String tempTableName = getTempTableForTable(table).getQualifiedNameDelimited(this);
         writer.write(tempTableName);
         writeJoinWhereClause(writer, targetTableName, tempTableName, targetPkFields, pkFields, this);
+    }
+
+    @Override
+    public void writeParameterMarker(Writer writer, ParameterExpression expression, AbstractRecord record, DatabaseCall call) throws IOException {
+        // JSON values need cast in SQL statement.
+        if (expression.getType() instanceof Type) {
+            final Type type = (Type) expression.getType();
+            switch (type.getTypeName()) {
+                case "jakarta.json.JsonValue":
+                case "jakarta.json.JsonArray":
+                case "jakarta.json.JsonObject":
+                    writer.write("CAST(? AS JSON)");
+                    return;
+            }
+        }
+        super.writeParameterMarker(writer, expression, record, call);
     }
 
     @Override

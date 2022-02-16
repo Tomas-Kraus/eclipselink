@@ -30,9 +30,7 @@ import org.eclipse.persistence.jpa.test.framework.DDLGen;
 import org.eclipse.persistence.jpa.test.framework.Emf;
 import org.eclipse.persistence.jpa.test.framework.EmfRunner;
 import org.eclipse.persistence.jpa.test.framework.Property;
-import org.eclipse.persistence.sessions.Session;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -231,9 +229,6 @@ public class TestJson implements JsonTestConverter.ConverterStatus {
 
     @Test
     public void testSelectJsonInWhereCondition() {
-        Assume.assumeFalse(
-                "JsonValue does not work in WHERE clause condition with MySQL",
-                emf.unwrap(Session.class).getPlatform().isMySQL());
         EntityManager em = emf.createEntityManager();
 
         JsonValue value = Json.createObjectBuilder()
