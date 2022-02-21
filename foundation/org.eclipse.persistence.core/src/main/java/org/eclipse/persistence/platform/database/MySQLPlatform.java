@@ -41,8 +41,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
-import jakarta.json.JsonValue;
-
 import org.eclipse.persistence.exceptions.ValidationException;
 import org.eclipse.persistence.expressions.ExpressionOperator;
 import org.eclipse.persistence.internal.databaseaccess.DatabaseCall;
@@ -202,9 +200,7 @@ public class MySQLPlatform extends DatabasePlatform {
         fieldTypeMapping.put(java.sql.Clob.class, new FieldTypeDefinition("LONGTEXT", false));
 
         // Mapping for JSON type set in JsonTypeConverter#initialize. Default size set to handle large JSON values.
-        fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("JSON"));
-        fieldTypeMapping.put(jakarta.json.JsonArray.class, new FieldTypeDefinition("JSON"));
-        fieldTypeMapping.put(jakarta.json.JsonValue.class, new FieldTypeDefinition("JSON"));
+        jsonPlatform.updateFieldTypes(fieldTypeMapping);
 
         fieldTypeMapping.put(java.sql.Date.class, new FieldTypeDefinition("DATE", false));
         FieldTypeDefinition fd = new FieldTypeDefinition("TIME");
@@ -769,15 +765,9 @@ public class MySQLPlatform extends DatabasePlatform {
     @Override
     public void writeParameterMarker(Writer writer, ParameterExpression expression, AbstractRecord record, DatabaseCall call) throws IOException {
         // JSON values need cast in SQL statement.
-        if (expression.getType() instanceof Type) {
-            final Type type = (Type) expression.getType();
-            switch (type.getTypeName()) {
-                case "jakarta.json.JsonValue":
-                case "jakarta.json.JsonArray":
-                case "jakarta.json.JsonObject":
-                    writer.write("CAST(? AS JSON)");
-                    return;
-            }
+        if ((expression.getType() instanceof Type) && jsonPlatform.isJsonType((Type) expression.getType())) {
+            writer.write(jsonPlatform.customParameterMarker());
+            return;
         }
         super.writeParameterMarker(writer, expression, record, call);
     }

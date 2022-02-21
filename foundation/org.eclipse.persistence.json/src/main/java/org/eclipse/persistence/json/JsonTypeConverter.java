@@ -12,14 +12,14 @@
 
 // Contributors:
 //     13/01/2022-4.0.0 Tomas Kraus - 1391: JSON support in JPA
-package org.eclipse.persistence.mappings.converters;
+package org.eclipse.persistence.json;
 
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 
 import org.eclipse.persistence.mappings.DatabaseMapping;
+import org.eclipse.persistence.mappings.converters.Converter;
 import org.eclipse.persistence.mappings.foundation.AbstractDirectMapping;
 import org.eclipse.persistence.sessions.Session;
 
@@ -28,10 +28,14 @@ import org.eclipse.persistence.sessions.Session;
  */
 public class JsonTypeConverter implements Converter {
 
+    /** JSON database platform. */
+    JsonPlatform platform;
+
     /**
      * Creates an instance of default JSON field value to JDBC data type converter.
      */
     public JsonTypeConverter() {
+        platform = null;
     }
 
     /**
@@ -44,7 +48,7 @@ public class JsonTypeConverter implements Converter {
     @Override
     public Object convertObjectValueToDataValue(Object jsonValue, Session session) {
         if (jsonValue instanceof JsonValue) {
-            return session.getPlatform().convertJsonValueToDataValue((JsonValue)jsonValue);
+            return platform.convertJsonValueToDataValue((JsonValue)jsonValue);
         }
         throw new IllegalArgumentException("Source object is not an instance of JsonValue");
     }
@@ -58,7 +62,7 @@ public class JsonTypeConverter implements Converter {
      */
     @Override
     public Object convertDataValueToObjectValue(Object jdbcValue, Session session) {
-        return session.getPlatform().convertDataValueToJsonValue(jdbcValue);
+        return platform.convertDataValueToJsonValue(jdbcValue);
     }
 
     /**

@@ -53,10 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.eclipse.persistence.exceptions.DatabaseException;
 import org.eclipse.persistence.exceptions.QueryException;
 import org.eclipse.persistence.internal.helper.ClassConstants;
@@ -1359,7 +1355,9 @@ public class DatabaseAccessor extends DatasourceAccessor {
                 value = Helper.rightTrimString((String) value);
             }
             return value;
-        } else if (fieldType == JsonValue.class || fieldType == JsonObject.class || fieldType == JsonArray.class) {
+        // else if (fieldType == JsonValue.class || fieldType == JsonObject.class || fieldType == JsonArray.class)
+        //  - workaround without jakarta.json dependency
+        } else if (fieldType != null && fieldType.getClass().getName().contains("json")) {
             // JSON types have platform specific ResultSet handlers.
             return platform.getJsonDataFromResultSet(resultSet, columnNumber);
         } else if (type == Types.VARCHAR || type == Types.CHAR || type == Types.NVARCHAR || type == Types.NCHAR) {

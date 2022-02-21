@@ -50,78 +50,83 @@ public class EmployeeTestBase extends BaseJparsTest {
 
     @Test
     public void testMarshalUnMarshalEmployeeJSON() throws RestCallFailedException, UnsupportedEncodingException, JAXBException {
-        EntityManager em = context.getEmf().createEntityManager();
-        em.getTransaction().begin();
+        try {
+            EntityManager em = context.getEmf().createEntityManager();
+            em.getTransaction().begin();
 
-        Employee employee = new Employee();
-        employee.setId(768);
-        employee.setFirstName("John");
-        employee.setLastName("Smith");
-        employee.setGender(Gender.Male);
-        employee.setSalary(35000);
+            Employee employee = new Employee();
+            employee.setId(768);
+            employee.setFirstName("John");
+            employee.setLastName("Smith");
+            employee.setGender(Gender.Male);
+            employee.setSalary(35000);
 
-        // Embeddable
-        EmploymentPeriod employmentPeriod = new EmploymentPeriod();
-        employmentPeriod.setStartDate(Calendar.getInstance());
-        employee.setPeriod(employmentPeriod);
+            // Embeddable
+            EmploymentPeriod employmentPeriod = new EmploymentPeriod();
+            employmentPeriod.setStartDate(Calendar.getInstance());
+            employee.setPeriod(employmentPeriod);
 
-        // PrivateOwned
-        EmployeeAddress address = new EmployeeAddress();
-        address.setCity("NYC");
-        address.setCountry("US");
-        address.setProvince("NY");
-        employee.setAddress(address);
+            // PrivateOwned
+            EmployeeAddress address = new EmployeeAddress();
+            address.setCity("NYC");
+            address.setCountry("US");
+            address.setProvince("NY");
+            employee.setAddress(address);
 
-        List<PhoneNumber> phoneNumbers = new ArrayList<>();
-        phoneNumbers.add(new PhoneNumber("Home", "613", "1234567"));
-        phoneNumbers.add(new PhoneNumber("Work", "613", "9876543"));
-        employee.setPhoneNumbers(phoneNumbers);
+            List<PhoneNumber> phoneNumbers = new ArrayList<>();
+            phoneNumbers.add(new PhoneNumber("Home", "613", "1234567"));
+            phoneNumbers.add(new PhoneNumber("Work", "613", "9876543"));
+            employee.setPhoneNumbers(phoneNumbers);
 
-        for (PhoneNumber ph:phoneNumbers){
-            ph.setEmployee(employee);
-        }
-
-        em.persist(employee);
-
-        Expertise expertise = new Expertise();
-        expertise.setSubject("REST");
-        em.persist(expertise);
-
-        Employee manager = new Employee();
-        manager.setId(121);
-        manager.setFirstName("Bill");
-        manager.setLastName("Anderson");
-        manager.setGender(Gender.Male);
-        List<Employee> managedEmployees = new ArrayList<>();
-        managedEmployees.add(employee);
-        manager.setManagedEmployees(managedEmployees);
-        employee.setManager(manager);
-
-        expertise.setEmployee(manager);
-        manager.getExpertiseAreas().add(expertise);
-        em.persist(manager);
-
-        em.getTransaction().commit();
-
-        String mgrMsg = RestUtils.marshal(context, manager, MediaType.APPLICATION_JSON_TYPE);
-        Employee mgr = RestUtils.unmarshal(context, mgrMsg, Employee.class, MediaType.APPLICATION_JSON_TYPE);
-
-        List<Employee> employees = mgr.getManagedEmployees();
-        assertTrue("Incorrectly unmarshalled managed employees.", employees.size() == 1);
-
-        if ((employees!= null) && (!employees.isEmpty())) {
-            for (Employee emp : employees) {
-                String firstName = emp.getFirstName();
-                assertTrue("Unmarshalled employee first name is incorrect.", "John".equals(firstName));
+            for (PhoneNumber ph : phoneNumbers) {
+                ph.setEmployee(employee);
             }
+
+            em.persist(employee);
+
+            Expertise expertise = new Expertise();
+            expertise.setSubject("REST");
+            em.persist(expertise);
+
+            Employee manager = new Employee();
+            manager.setId(121);
+            manager.setFirstName("Bill");
+            manager.setLastName("Anderson");
+            manager.setGender(Gender.Male);
+            List<Employee> managedEmployees = new ArrayList<>();
+            managedEmployees.add(employee);
+            manager.setManagedEmployees(managedEmployees);
+            employee.setManager(manager);
+
+            expertise.setEmployee(manager);
+            manager.getExpertiseAreas().add(expertise);
+            em.persist(manager);
+
+            em.getTransaction().commit();
+
+            String mgrMsg = RestUtils.marshal(context, manager, MediaType.APPLICATION_JSON_TYPE);
+            Employee mgr = RestUtils.unmarshal(context, mgrMsg, Employee.class, MediaType.APPLICATION_JSON_TYPE);
+
+            List<Employee> employees = mgr.getManagedEmployees();
+            assertTrue("Incorrectly unmarshalled managed employees.", employees.size() == 1);
+
+            if ((employees != null) && (!employees.isEmpty())) {
+                for (Employee emp : employees) {
+                    String firstName = emp.getFirstName();
+                    assertTrue("Unmarshalled employee first name is incorrect.", "John".equals(firstName));
+                }
+            }
+
+            assertTrue("Incorrectly marshallet Set of Expertise Areas", mgr.getExpertiseAreas().size() == 1);
+
+            em.getTransaction().begin();
+            em.remove(employee);
+            em.remove(manager);
+            em.getTransaction().commit();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
         }
-
-        assertTrue("Incorrectly marshallet Set of Expertise Areas", mgr.getExpertiseAreas().size() == 1);
-
-        em.getTransaction().begin();
-        em.remove(employee);
-        em.remove(manager);
-        em.getTransaction().commit();
     }
 
     @Test

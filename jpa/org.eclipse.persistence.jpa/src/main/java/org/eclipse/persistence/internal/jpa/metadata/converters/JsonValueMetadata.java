@@ -20,7 +20,7 @@ import org.eclipse.persistence.exceptions.ValidationException;
 import org.eclipse.persistence.internal.jpa.metadata.accessors.mappings.MappingAccessor;
 import org.eclipse.persistence.internal.jpa.metadata.accessors.objects.MetadataClass;
 import org.eclipse.persistence.mappings.DatabaseMapping;
-import org.eclipse.persistence.mappings.converters.JsonTypeConverter;
+import org.eclipse.persistence.json.JsonTypeConverter;
 
 /**
  * INTERNAL:

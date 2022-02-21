@@ -186,7 +186,8 @@ module org.eclipse.persistence.core {
             org.eclipse.persistence.jpars.server,
             org.eclipse.persistence.moxy,
             org.eclipse.persistence.oracle,
-            org.eclipse.persistence.sdo;
+            org.eclipse.persistence.sdo,
+            org.eclipse.persistence.pgsql;
     exports org.eclipse.persistence.internal.mappings.converters to org.eclipse.persistence.jpa;
     exports org.eclipse.persistence.internal.weaving to org.eclipse.persistence.jpa;
     exports org.eclipse.persistence.internal.cache to org.eclipse.persistence.moxy;

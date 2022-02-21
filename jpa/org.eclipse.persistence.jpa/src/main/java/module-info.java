@@ -17,6 +17,7 @@ module org.eclipse.persistence.jpa {
     requires org.eclipse.persistence.asm;
     requires transitive org.eclipse.persistence.core;
     requires org.eclipse.persistence.jpa.jpql;
+    requires org.eclipse.persistence.json;
 
     requires transitive jakarta.persistence;
     requires transitive jakarta.json;
