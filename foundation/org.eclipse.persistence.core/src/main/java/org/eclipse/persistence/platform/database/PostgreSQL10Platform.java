@@ -119,7 +119,8 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
     @Override
     protected Map<String, Class<?>> buildClassTypes() {
         final Map<String, Class<?>> classTypeMapping = super.buildClassTypes();
-        classTypeMapping.put("JSONB", jakarta.json.JsonValue.class);
+        // Mapping for JSON type.
+        getJsonPlatform().updateClassTypes(classTypeMapping);
         return classTypeMapping;
     }
 
@@ -131,10 +132,8 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
     @Override
     protected Hashtable<Class<?>, FieldTypeDefinition> buildFieldTypes() {
         final Hashtable<Class<?>, FieldTypeDefinition>fieldTypeMapping = super.buildFieldTypes();
-        // Mapping for JSON type is set in JsonTypeConverter#initialize.
-        fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("JSONB"));
-        fieldTypeMapping.put(jakarta.json.JsonArray.class, new FieldTypeDefinition("JSONB"));
-        fieldTypeMapping.put(jakarta.json.JsonValue.class, new FieldTypeDefinition("JSONB"));
+        // Mapping for JSON type.
+        getJsonPlatform().updateFieldTypes(fieldTypeMapping);
         return fieldTypeMapping;
     }
 
@@ -186,59 +185,59 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
         }
     }
 
-    // Postgres specific JSON types support:
-    // Stores JsonValue instances as JSONB.
-    /**
-     * INTERNAL:
-     * Convert JSON value field to JDBC statement type.
-     * Postgres JSON storage type is {@code JSONB} and target Java type is {@code PGobject}.
-     *
-     * @param <T> classification type
-     * @param jsonValue source JSON value field
-     * @return converted JDBC statement type
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) throws PersistenceException {
-        if (jsonValue == null) {
-            return null;
-        }
-        final String jsonAsString = super.convertJsonValueToDataValue(jsonValue);
-        // Following code is called through reflection to avoid PGobject dependency
-        try {
-            return (T) PgObjectAccessor.PG_OBJECT_ACCESSOR.newPgObject(jsonAsString);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_jsonvalue_to_database_type"), e);
-        }
-    }
-
-    // Default resultSet.getString(columnNumber); call works too.
-    /**
-     * Retrieve JSON data from JDBC {@code ResultSet}.
-     * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code PGobject} instance.
-     * It must be converted to {@code String} first to be accepted by common {@code JsonTypeConverter}.
-     *
-     * @param resultSet source JDBC {@code ResultSet}
-     * @param columnNumber index of column in JDBC {@code ResultSet}
-     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by common {@code JsonTypeConverter}
-     * @throws SQLException if data could not be retrieved
-     */
-    @Override
-    public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
-        // ResultSet returns an instance of PGobject.
-        final Object rawData = resultSet.getObject(columnNumber);
-        // Following code is called through reflection to avoid PGobject dependency.
-        if (PgObjectAccessor.PG_OBJECT_ACCESSOR.isInstance(rawData)) {
-            try {
-                return PgObjectAccessor.PG_OBJECT_ACCESSOR.getValue(rawData);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_pgobject_conversion"), e);
-            }
-        // Fallback option when String value is returned.
-        } else if (rawData instanceof String) {
-            return rawData;
-        }
-        throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_unknown_type"));
-    }
+//    // Postgres specific JSON types support:
+//    // Stores JsonValue instances as JSONB.
+//    /**
+//     * INTERNAL:
+//     * Convert JSON value field to JDBC statement type.
+//     * Postgres JSON storage type is {@code JSONB} and target Java type is {@code PGobject}.
+//     *
+//     * @param <T> classification type
+//     * @param jsonValue source JSON value field
+//     * @return converted JDBC statement type
+//     */
+//    @Override
+//    @SuppressWarnings("unchecked")
+//    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) throws PersistenceException {
+//        if (jsonValue == null) {
+//            return null;
+//        }
+//        final String jsonAsString = super.convertJsonValueToDataValue(jsonValue);
+//        // Following code is called through reflection to avoid PGobject dependency
+//        try {
+//            return (T) PgObjectAccessor.PG_OBJECT_ACCESSOR.newPgObject(jsonAsString);
+//        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//            throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_jsonvalue_to_database_type"), e);
+//        }
+//    }
+//
+//    // Default resultSet.getString(columnNumber); call works too.
+//    /**
+//     * Retrieve JSON data from JDBC {@code ResultSet}.
+//     * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code PGobject} instance.
+//     * It must be converted to {@code String} first to be accepted by common {@code JsonTypeConverter}.
+//     *
+//     * @param resultSet source JDBC {@code ResultSet}
+//     * @param columnNumber index of column in JDBC {@code ResultSet}
+//     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by common {@code JsonTypeConverter}
+//     * @throws SQLException if data could not be retrieved
+//     */
+//    @Override
+//    public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
+//        // ResultSet returns an instance of PGobject.
+//        final Object rawData = resultSet.getObject(columnNumber);
+//        // Following code is called through reflection to avoid PGobject dependency.
+//        if (PgObjectAccessor.PG_OBJECT_ACCESSOR.isInstance(rawData)) {
+//            try {
+//                return PgObjectAccessor.PG_OBJECT_ACCESSOR.getValue(rawData);
+//            } catch (IllegalAccessException | InvocationTargetException e) {
+//                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_pgobject_conversion"), e);
+//            }
+//        // Fallback option when String value is returned.
+//        } else if (rawData instanceof String) {
+//            return rawData;
+//        }
+//        throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_unknown_type"));
+//    }
 
 }

@@ -20,13 +20,15 @@ import org.eclipse.persistence.exceptions.ValidationException;
 import org.eclipse.persistence.internal.jpa.metadata.accessors.mappings.MappingAccessor;
 import org.eclipse.persistence.internal.jpa.metadata.accessors.objects.MetadataClass;
 import org.eclipse.persistence.mappings.DatabaseMapping;
-import org.eclipse.persistence.mappings.converters.JsonTypeConverter;
 
 /**
  * INTERNAL:
  * This class processes JSON converter.
  */
 public class JsonValueMetadata extends MetadataConverter {
+
+    // This matadata class fully qualified name.
+    private static final String TYPE_NAME = JsonValueMetadata.class.getName();
 
     /**
      * INTERNAL:
@@ -50,7 +52,11 @@ public class JsonValueMetadata extends MetadataConverter {
         if (accessor.getReferenceClass().extendsInterface(JsonValue.class)
                 || accessor.getReferenceClass().isArray()
                 || accessor.getReferenceClass().isInterface()) {
-            setConverter(mapping, new JsonTypeConverter(), isForMapKey);
+            if (ConverterManager.getInstance().hasConverter(TYPE_NAME)) {
+                setConverter(mapping, ConverterManager.getInstance().createConverter(TYPE_NAME), isForMapKey);
+            } else {
+                throw new IllegalStateException("Missing JSON type converter on classpath");
+            }
         } else {
             // 266912: relax validation for MappedSuperclass descriptors
             if (!accessor.getClassAccessor().isMappedSuperclass()) {

@@ -253,6 +253,8 @@
         <module>jpa/org.eclipse.persistence.jpa.jpql</module>
 
         <module>foundation/org.eclipse.persistence.core</module>
+        <module>foundation/org.eclipse.persistence.json</module>
+        <module>foundation/org.eclipse.persistence.pgsql</module>
 
         <module>jpa/org.eclipse.persistence.jpa</module>
         <module>jpa/org.eclipse.persistence.jpa.modelgen</module>
@@ -425,6 +427,18 @@
 
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.json</artifactId>
+                <version>${project.version}</version>
+                <classifier>sources</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.moxy</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -491,6 +505,18 @@
             <dependency>
                 <groupId>org.eclipse.persistence</groupId>
                 <artifactId>org.eclipse.persistence.oracle.spatial</artifactId>
+                <version>${project.version}</version>
+                <classifier>sources</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.pgsql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.persistence</groupId>
+                <artifactId>org.eclipse.persistence.pgsql</artifactId>
                 <version>${project.version}</version>
                 <classifier>sources</classifier>
             </dependency>

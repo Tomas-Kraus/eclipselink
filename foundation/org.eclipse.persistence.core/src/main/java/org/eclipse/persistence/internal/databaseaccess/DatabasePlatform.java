@@ -274,6 +274,10 @@ public class DatabasePlatform extends DatasourcePlatform {
     protected Boolean useJDBCStoredProcedureSyntax;
     protected String driverName;
 
+    // DatabaseJsonPlatform has lazy initialization
+    /** JSON support for ResultSet data retrieval. */
+    private DatabaseJsonPlatform jsonPlatform;
+
     /**
      * Creates an instance of default database platform.
      */
@@ -301,6 +305,7 @@ public class DatabasePlatform extends DatasourcePlatform {
         this.endDelimiter = "\"";
         this.useJDBCStoredProcedureSyntax = null;
         this.storedProcedureTerminationToken = ";";
+        this.jsonPlatform = null;
     }
 
     /**
@@ -772,10 +777,8 @@ public class DatabasePlatform extends DatasourcePlatform {
         fieldTypeMapping.put(java.time.LocalTime.class, new FieldTypeDefinition("TIME"));
         fieldTypeMapping.put(java.time.OffsetDateTime.class, new FieldTypeDefinition("TIMESTAMP"));
         fieldTypeMapping.put(java.time.OffsetTime.class, new FieldTypeDefinition("TIME"));
-        // Mapping for JSON type set in JsonTypeConverter#initialize. Default size set to handle large JSON values.
-        fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("VARCHAR", 512));
-        fieldTypeMapping.put(jakarta.json.JsonArray.class, new FieldTypeDefinition("VARCHAR", 512));
-        fieldTypeMapping.put(jakarta.json.JsonValue.class, new FieldTypeDefinition("VARCHAR", 512));
+        // Mapping for JSON type.
+        getJsonPlatform().updateFieldTypes(fieldTypeMapping);
 
         return fieldTypeMapping;
     }
@@ -3781,56 +3784,68 @@ public class DatabasePlatform extends DatasourcePlatform {
         }
     }
 
-    // Common JSON types support:
-    // Stores JsonValue instances as VARCHAR.
-    /**
-     * INTERNAL:
-     * Convert JSON value field to JDBC statement type.
-     * Common JSON storage type is {@code VARCHAR} so target Java type is {@code String}.
-     *
-     * @param <T> classification type
-     * @param jsonValue source JSON value field
-     * @return converted JDBC statement type
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) {
-        if (jsonValue == null) {
-            return null;
+    public DatabaseJsonPlatform getJsonPlatform() {
+        if (jsonPlatform != null) {
+            return jsonPlatform;
         }
-        final StringWriter sw = new StringWriter(128);
-        try (final JsonWriter jw = Json.createWriter(sw)) {
-            jw.write(jsonValue);
-        }
-        return (T) sw.toString();
-    }
-
-    /**
-     * Convert JDBC {@code ResultSet} type to JSON value field.
-     * This method consumes value returned by {@link Object getJsonDataFromResultSet(ResultSet, int)}.
-     * Both methods must be overwritten by platform specific code when jdbcValue is not String.
-     *
-     * @param jdbcValue source classification type value from JDBC
-     * @return converted JSON field value
-     */
-    public JsonValue convertDataValueToJsonValue(Object jdbcValue) {
-        if (jdbcValue == null) {
-            return null;
-        }
-        try (final JsonReader jr = Json.createReader(new StringReader((String)jdbcValue))) {
-            return jr.readValue();
+        synchronized (this) {
+            if (jsonPlatform == null) {
+                jsonPlatform = JsonPlatformManager.getInstance().createPlatform(this.getClass());
+            }
+            return jsonPlatform;
         }
     }
 
-    /**
-     * Retrieve JSON data from JDBC {@code ResultSet}.
-     *
-     * @param resultSet source JDBC {@code ResultSet}
-     * @param columnNumber index of column in JDBC {@code ResultSet}
-     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by {@code JsonTypeConverter}
-     * @throws SQLException if data could not be retrieved
-     */
-    public Object getJsonDataFromResultSet(ResultSet resultSet, int columnNumber) throws SQLException {
-        return resultSet.getString(columnNumber);
-    }
+//    // Common JSON types support:
+//    // Stores JsonValue instances as VARCHAR.
+//    /**
+//     * INTERNAL:
+//     * Convert JSON value field to JDBC statement type.
+//     * Common JSON storage type is {@code VARCHAR} so target Java type is {@code String}.
+//     *
+//     * @param <T> classification type
+//     * @param jsonValue source JSON value field
+//     * @return converted JDBC statement type
+//     */
+//    @SuppressWarnings("unchecked")
+//    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) {
+//        if (jsonValue == null) {
+//            return null;
+//        }
+//        final StringWriter sw = new StringWriter(128);
+//        try (final JsonWriter jw = Json.createWriter(sw)) {
+//            jw.write(jsonValue);
+//        }
+//        return (T) sw.toString();
+//    }
+//
+//    /**
+//     * Convert JDBC {@code ResultSet} type to JSON value field.
+//     * This method consumes value returned by {@link Object getJsonDataFromResultSet(ResultSet, int)}.
+//     * Both methods must be overwritten by platform specific code when jdbcValue is not String.
+//     *
+//     * @param jdbcValue source classification type value from JDBC
+//     * @return converted JSON field value
+//     */
+//    public JsonValue convertDataValueToJsonValue(Object jdbcValue) {
+//        if (jdbcValue == null) {
+//            return null;
+//        }
+//        try (final JsonReader jr = Json.createReader(new StringReader((String)jdbcValue))) {
+//            return jr.readValue();
+//        }
+//    }
+//
+//    /**
+//     * Retrieve JSON data from JDBC {@code ResultSet}.
+//     *
+//     * @param resultSet source JDBC {@code ResultSet}
+//     * @param columnNumber index of column in JDBC {@code ResultSet}
+//     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by {@code JsonTypeConverter}
+//     * @throws SQLException if data could not be retrieved
+//     */
+//    public Object getJsonDataFromResultSet(ResultSet resultSet, int columnNumber) throws SQLException {
+//        return getJsonPlatform().getJsonDataFromResultSet(resultSet, columnNumber);
+//    }
 
 }

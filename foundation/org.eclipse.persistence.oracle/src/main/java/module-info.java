@@ -13,6 +13,7 @@
 module org.eclipse.persistence.oracle {
 
     requires transitive org.eclipse.persistence.core;
+    requires transitive org.eclipse.persistence.json;
     requires transitive jakarta.persistence;
     requires transitive jakarta.json;
     requires transitive com.oracle.database.jdbc;
@@ -26,4 +27,5 @@ module org.eclipse.persistence.oracle {
 
     //exported through PUBLIC API
     exports org.eclipse.persistence.internal.platform.database.oracle;
+    exports org.eclipse.persistence.platform.database.oracle.json;
 }

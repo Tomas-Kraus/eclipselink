@@ -63,6 +63,19 @@
             <artifactId>org.eclipse.persistence.jpa</artifactId>
             <scope>test</scope>
         </dependency>
+        <!--EclipseLink JSON Extension-->
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.json</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--EclipseLink PgSQL Extension-->
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.pgsql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!--EclipseLink EclipseLink JPA Model Generator-->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
@@ -118,6 +131,11 @@
                         <version>${project.version}</version>
                     </dependency>
                     <dependency>
+                        <groupId>org.eclipse.persistence</groupId>
+                        <artifactId>org.eclipse.persistence.json</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                    <dependency>
                         <groupId>junit</groupId>
                         <artifactId>junit</artifactId>
                         <version>${junit.version}</version>
@@ -160,11 +178,11 @@
                                 <exclude>CacheDeadLockDetectionTest*</exclude>
                             </excludes>
                             <includes>
-                                <include>*.Test*</include>
+                                <include>*.json.Test*</include>
                             </includes>
                         </configuration>
                     </execution>
-                    <execution>
+                    <!--execution>
                         <id>test-jpa-jse-deadlock</id>
                         <goals>
                             <goal>integration-test</goal>
@@ -183,7 +201,7 @@
                         <configuration>
                             <skip>${integration.test.skip.verify}</skip>
                         </configuration>
-                    </execution>
+                    </execution-->
                 </executions>
             </plugin>
             <plugin>
