@@ -21,6 +21,11 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 
 public class MySQLJsonPlatform extends JsonPlatform {
 
+/**
+ * Update the mapping of JSON class types to MySQL database types for the schema framework.
+ *
+ * @param fieldTypeMapping {@code Map} with mappings to be updated.
+ */
     @Override
     public void updateFieldTypes(final Hashtable<Class<?>, FieldTypeDefinition> fieldTypeMapping) {
         fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("JSON"));
@@ -28,10 +33,14 @@ public class MySQLJsonPlatform extends JsonPlatform {
         fieldTypeMapping.put(jakarta.json.JsonValue.class, new FieldTypeDefinition("JSON"));
     }
 
+    /**
+     * MySQL specific custom JSON parameter marker.
+     *
+     * @return JSON parameter marker
+     */
     @Override
     public String customParameterMarker() {
         return "CAST(? AS JSON)";
     }
-
 
 }

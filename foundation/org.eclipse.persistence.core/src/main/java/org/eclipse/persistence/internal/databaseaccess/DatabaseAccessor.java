@@ -1356,11 +1356,11 @@ public class DatabaseAccessor extends DatasourceAccessor {
                 value = Helper.rightTrimString((String) value);
             }
             return value;
-        // } else if (fieldType == JsonValue.class || fieldType == JsonObject.class || fieldType == JsonArray.class) {
-        // - workaround without jakarta.json dependency
+            // } else if (fieldType == JsonValue.class || fieldType == JsonObject.class || fieldType == JsonArray.class) {
+            // - workaround without jakarta.json dependency
         } else if (fieldType != null && fieldType.getName().contains("json")) {
             // JSON types have platform specific ResultSet handlers.
-            return platform.getJsonPlatform().getJsonDataFromResultSet(resultSet, columnNumber);
+            return platform.getJsonPlatform().getJsonDataFromResultSet(resultSet, columnNumber, Object.class);
         } else if (type == Types.VARCHAR || type == Types.CHAR || type == Types.NVARCHAR || type == Types.NCHAR) {
             // CUSTOM PATCH for oracle drivers because they don't respond to getObject() when using scrolling result sets.
             // Chars may require blanks to be trimmed.

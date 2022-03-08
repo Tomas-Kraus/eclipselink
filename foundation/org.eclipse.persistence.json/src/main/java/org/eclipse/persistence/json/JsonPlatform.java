@@ -18,11 +18,7 @@ package org.eclipse.persistence.json;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
-import java.util.function.Supplier;
 
 import jakarta.json.Json;
 import jakarta.json.JsonReader;
@@ -30,50 +26,22 @@ import jakarta.json.JsonValue;
 import jakarta.json.JsonWriter;
 
 import org.eclipse.persistence.internal.databaseaccess.DatabaseJsonPlatform;
-import org.eclipse.persistence.internal.databaseaccess.DatabasePlatform;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
-import org.eclipse.persistence.platform.database.MySQLPlatform;
 
-/** JSON database platform. */
+/**
+ * Default JSON database platform.
+ */
 public class JsonPlatform implements DatabaseJsonPlatform {
 
+    // Default size of JSON data storage as VARCHAR type.
     private static final int JSON_VARCHAR_SIZE = 2048;
 
-//    private static final class JsonPlatformFactory implements DatabaseJsonPlatform.Factory {
-//
-//        // Factory singleton instance.
-//        private static final JsonPlatformFactory INSTANCE = new JsonPlatformFactory();
-//
-//        private JsonPlatformFactory() {
-//            this.mapping = initMapping();
-//        }
-//
-//        // JSON database platform factory mapping.
-//        private final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> mapping;
-//
-//        // Iniotialize JSON database platform factory mapping.
-//        private Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> initMapping() {
-//            final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> mapping = new HashMap<>();
-//            mapping.put(MySQLPlatform.class, MySQLJsonPlatform::new);
-//            return Collections.unmodifiableMap(mapping);
-//        }
-//
-//        @Override
-//        public DatabaseJsonPlatform create(final Class<? extends DatabasePlatform> platformClass) {
-//            final Supplier<DatabaseJsonPlatform> supplier = mapping.get(platformClass);
-//            return supplier != null ? supplier.get() : new JsonPlatform();
-//        }
-//    }
-//
-//    /**
-//     * Returns JSON database platorm factory.
-//     *
-//     * @return singleton factory instance.
-//     */
-//    public static JsonPlatformFactory getFactory() {
-//        return JsonPlatformFactory.INSTANCE;
-//    }
-
+    /**
+     * Check whether provided {@code Type} instance is JSON type.
+     *
+     * @param type type to be checked
+     * @return value of {@code true} when provided value is JSON type or {@code false} otherwise
+     */
     public boolean isJsonType(final Type type) {
         switch (type.getTypeName()) {
             case "jakarta.json.JsonValue":
@@ -85,6 +53,11 @@ public class JsonPlatform implements DatabaseJsonPlatform {
         }
     }
 
+    /**
+     * Update the mapping of JSON class types to database types for the schema framework.
+     *
+     * @param fieldTypeMapping {@code Map} with mappings to be updated.
+     */
     @Override
     public void updateFieldTypes(final Hashtable<Class<?>, FieldTypeDefinition> fieldTypeMapping) {
         fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition("VARCHAR", JSON_VARCHAR_SIZE));

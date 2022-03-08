@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0,
+ * or the Eclipse Distribution License v. 1.0 which is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause
+ */
+
+// Contributors:
+//     13/01/2022-4.0.0 Tomas Kraus
+//       - 1391: JSON support in JPA
 package org.eclipse.persistence.platform.database.oracle.json;
 
 import java.io.IOException;
@@ -21,6 +36,9 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 import org.eclipse.persistence.json.JsonPlatform;
 
+/**
+ * Oracle 21c JSON database platform.
+ */
 public class Oracle21JsonPlatform extends JsonPlatform {
 
     // Default Oracle 21c type for JSON data.
@@ -34,11 +52,21 @@ public class Oracle21JsonPlatform extends JsonPlatform {
         this.factory = new OracleJsonFactory();
     }
 
+    /**
+     * Update the mapping of Oracle 21c database types to class types for the schema framework.
+     *
+     * @param classTypeMapping {@code Map} with mappings to be updated.
+     */
     @Override
-    public void updateClassTypes(Map<String, Class<?>> fieldTypeMapping) {
-        fieldTypeMapping.put(JSON_DEFAULT_TYPE, jakarta.json.JsonValue.class);
+    public void updateClassTypes(Map<String, Class<?>> classTypeMapping) {
+        classTypeMapping.put(JSON_DEFAULT_TYPE, jakarta.json.JsonValue.class);
     }
 
+    /**
+     * Update the mapping of JSON class types to Oracle 21c database types for the schema framework.
+     *
+     * @param fieldTypeMapping {@code Map} with mappings to be updated.
+     */
     @Override
     public void updateFieldTypes(Hashtable<Class<?>, FieldTypeDefinition> fieldTypeMapping) {
         fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition(JSON_DEFAULT_TYPE));
@@ -106,14 +134,15 @@ public class Oracle21JsonPlatform extends JsonPlatform {
      *
      * @param resultSet source JDBC {@code ResultSet}
      * @param columnNumber index of column in JDBC {@code ResultSet}
+     * @param type target class to return, this class will be used to cast returned value
+     * @param <T> target type to return
      * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by common {@code JsonTypeConverter}
      * @throws SQLException if data could not be retrieved
      */
     @Override
-    public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
+    public <T> T getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber, final Class<T> type) throws SQLException {
         // FIXME: Use JsonValue.class when ojdbc adds supoprt for it (planned in next release)
-        return resultSet.getObject(columnNumber, OracleJsonValue.class);
+        return type.cast(resultSet.getObject(columnNumber, OracleJsonValue.class));
     }
-
 
 }

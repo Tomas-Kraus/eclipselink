@@ -23,16 +23,26 @@ import java.util.function.Supplier;
 import org.eclipse.persistence.mappings.converters.Converter;
 import org.eclipse.persistence.mappings.converters.spi.ConverterProvider;
 
+/**
+ * JSON converter service provider.
+ */
 public class JsonConverterProvider implements ConverterProvider {
 
+    // Converter metadata class name to converter instance Supplier maping.
     private static final Map<String, Supplier<Converter>> CONVERTERS = initConverters();
 
+    // Initialize metadata class name to converter instance Supplier mapping.
     private static Map<String, Supplier<Converter>> initConverters() {
         final Map<String, Supplier<Converter>> converters = new HashMap<>(2);
         converters.put("org.eclipse.persistence.internal.jpa.metadata.converters.JsonValueMetadata", JsonTypeConverter::new);
         return Collections.unmodifiableMap(converters);
     }
 
+    /**
+     * Get {@code Converter} medatada class name to converter instance {@code Supplier} mapping.
+     *
+     * @return {@code Converter} medatada class name to converter instance {@code Supplier} mapping
+     */
     @Override
     public Map<String, Supplier<Converter>> converters() {
         return CONVERTERS;

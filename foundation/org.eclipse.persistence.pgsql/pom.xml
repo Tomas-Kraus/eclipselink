@@ -31,7 +31,6 @@
     </parent>
 
     <dependencies>
-        <!--Other modules-->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.core</artifactId>

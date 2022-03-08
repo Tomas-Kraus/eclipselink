@@ -14,22 +14,16 @@
 //     13/01/2022-4.0.0 Tomas Kraus - 1391: JSON support in JPA
 package org.eclipse.persistence.platform.database;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.Map;
 
-import jakarta.json.JsonValue;
-import jakarta.persistence.PersistenceException;
-
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
-import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
+import org.eclipse.persistence.logging.DefaultSessionLog;
+import org.eclipse.persistence.logging.SessionLog;
 
 /**
  * Postgres 10 database platform extension.
@@ -44,71 +38,38 @@ import org.eclipse.persistence.internal.sessions.AbstractSession;
  */
 public class PostgreSQL10Platform extends PostgreSQLPlatform {
 
-    // Access to org.postgresql.util.PGobject trough reflection to hide dependency on Postgres JDBC driver.
-    private static final class PgObjectAccessor {
-
-        // PGobject fully qualified name.
-        private static final String PG_OBJECT_CLASS_NAME = "org.postgresql.util.PGobject";
-        // PGobject accessor singleton instance. Being in inner class guarantees thread safe lazy initialization.
-        private static final PgObjectAccessor PG_OBJECT_ACCESSOR = new PgObjectAccessor();
-        // Default Postgres 10 type for JSON data.
-        private static final String JSON_DEFAULT_TYPE = "jsonb";
-
-        private final String className;
-        private Class<?> classReference;
-        private Constructor<?> constructor;
-        private Method setValue;
-        private Method setType;
-        private Method getValue;
-
-        private PgObjectAccessor() {
-            // Some tests will fail when static PG_OBJECT_CLASS_NAME is used directly as Class.forName argument.
-            this.className = PG_OBJECT_CLASS_NAME;
-            try {
-                this.classReference = Class.forName(className);
-                this.constructor = classReference.getConstructor();
-                this.setValue = classReference.getDeclaredMethod("setValue", String.class);
-                this.setType = classReference.getDeclaredMethod("setType", String.class);
-                this.getValue = classReference.getDeclaredMethod("getValue");
-            } catch (ClassNotFoundException | NoSuchMethodException ex) {
-                this.classReference = null;
-                this.constructor = null;
-                this.setValue = null;
-                this.setType = null;
-                this.getValue = null;
-            }
-        }
-
-        private boolean isInstance(final Object o) {
-            if (classReference == null) {
-                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_missing_class_on_classpath", new Object[] {this.className}));
-            }
-            return classReference.isInstance(o);
-        }
-
-        private Object newPgObject(final String value)
-                throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            if (classReference == null) {
-                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_missing_class_on_classpath", new Object[] {this.className}));
-            }
-            final Object pgObject = constructor.newInstance();
-            setType.invoke(pgObject, JSON_DEFAULT_TYPE);
-            setValue.invoke(pgObject, value);
-            return pgObject;
-        }
-
-        private String getValue(final Object pgObject) throws InvocationTargetException, IllegalAccessException {
-            // No classReference null check is required because this method is always called after isInstance.
-            return (String) getValue.invoke(pgObject);
-        }
-
+    /**
+     * Add extended JSON functionality dependent on PostgreSQL JDBC driver.
+     */
+    public interface PostgreSQL10JsonExtension {
+        /**
+         * Check whether provided instance is an instance of {@code PGobject}.
+         *
+         * @param parameter an instance to check
+         * @return value of {@code true} when provided instance is an instance
+         *         of {@code PGobject} or {@code false} otherwise
+         */
+        boolean isPgObjectInstance(final Object parameter);
     }
+
+    // PostgreSQL10JsonExtension implementation: PostgreSQL10JsonPlatform instance if available or null
+    private final PostgreSQL10JsonExtension postgreSQL10JsonExtension;
 
     /**
      * Creates an instance of Postgres 10 platform.
      */
     public PostgreSQL10Platform() {
         super();
+        // Eager PostgreSQL10JsonExtension initialization from Postgres 10 specific platform
+        // does not break the CORBA Extension tests.
+        if (this.getJsonPlatform() instanceof PostgreSQL10JsonExtension) {
+            postgreSQL10JsonExtension = (PostgreSQL10JsonExtension) this.getJsonPlatform();
+        // Missing PostgreSQL10JsonPlatform from org.eclipse.persistence.pgsql module.
+        // This will cause JSON related functionality to fail.
+        } else {
+            DefaultSessionLog.getLog().log(SessionLog.SEVERE, "pgsql10_platform_missing_json_extension", null);
+            postgreSQL10JsonExtension = null;
+        }
     }
 
     /**
@@ -153,8 +114,7 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
             final Object parameter, final PreparedStatement statement,
             final int index, final AbstractSession session
     ) throws SQLException {
-        // Instance check is called through reflection to avoid PGobject dependency
-        if (PgObjectAccessor.PG_OBJECT_ACCESSOR.isInstance(parameter)) {
+        if (postgreSQL10JsonExtension != null && postgreSQL10JsonExtension.isPgObjectInstance(parameter)) {
             statement.setObject(index, parameter);
         } else {
             super.setParameterValueInDatabaseCall(parameter, statement, index, session);
@@ -177,67 +137,11 @@ public class PostgreSQL10Platform extends PostgreSQLPlatform {
             final Object parameter, final CallableStatement statement,
             final String name, final AbstractSession session
     ) throws SQLException {
-        // Instance check is called through reflection to avoid PGobject dependency
-        if (PgObjectAccessor.PG_OBJECT_ACCESSOR.isInstance(parameter)) {
+        if (postgreSQL10JsonExtension != null && postgreSQL10JsonExtension.isPgObjectInstance(parameter)) {
             statement.setObject(name, parameter);
         } else {
             super.setParameterValueInDatabaseCall(parameter, statement, name, session);
         }
     }
-
-//    // Postgres specific JSON types support:
-//    // Stores JsonValue instances as JSONB.
-//    /**
-//     * INTERNAL:
-//     * Convert JSON value field to JDBC statement type.
-//     * Postgres JSON storage type is {@code JSONB} and target Java type is {@code PGobject}.
-//     *
-//     * @param <T> classification type
-//     * @param jsonValue source JSON value field
-//     * @return converted JDBC statement type
-//     */
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) throws PersistenceException {
-//        if (jsonValue == null) {
-//            return null;
-//        }
-//        final String jsonAsString = super.convertJsonValueToDataValue(jsonValue);
-//        // Following code is called through reflection to avoid PGobject dependency
-//        try {
-//            return (T) PgObjectAccessor.PG_OBJECT_ACCESSOR.newPgObject(jsonAsString);
-//        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-//            throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_jsonvalue_to_database_type"), e);
-//        }
-//    }
-//
-//    // Default resultSet.getString(columnNumber); call works too.
-//    /**
-//     * Retrieve JSON data from JDBC {@code ResultSet}.
-//     * JSON data retrieved from Postgres JDBC {@code ResultSet} are returned as {@code PGobject} instance.
-//     * It must be converted to {@code String} first to be accepted by common {@code JsonTypeConverter}.
-//     *
-//     * @param resultSet source JDBC {@code ResultSet}
-//     * @param columnNumber index of column in JDBC {@code ResultSet}
-//     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by common {@code JsonTypeConverter}
-//     * @throws SQLException if data could not be retrieved
-//     */
-//    @Override
-//    public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
-//        // ResultSet returns an instance of PGobject.
-//        final Object rawData = resultSet.getObject(columnNumber);
-//        // Following code is called through reflection to avoid PGobject dependency.
-//        if (PgObjectAccessor.PG_OBJECT_ACCESSOR.isInstance(rawData)) {
-//            try {
-//                return PgObjectAccessor.PG_OBJECT_ACCESSOR.getValue(rawData);
-//            } catch (IllegalAccessException | InvocationTargetException e) {
-//                throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_pgobject_conversion"), e);
-//            }
-//        // Fallback option when String value is returned.
-//        } else if (rawData instanceof String) {
-//            return rawData;
-//        }
-//        throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_unknown_type"));
-//    }
 
 }

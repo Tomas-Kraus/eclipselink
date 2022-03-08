@@ -21,6 +21,9 @@ import java.util.function.Supplier;
 import org.eclipse.persistence.internal.databaseaccess.DatabaseJsonPlatform;
 import org.eclipse.persistence.internal.databaseaccess.DatabasePlatform;
 
+/**
+ * Java service provider interface for database platform JSOn extension.
+ */
 public interface JsonPlatformProvider {
 
     /**

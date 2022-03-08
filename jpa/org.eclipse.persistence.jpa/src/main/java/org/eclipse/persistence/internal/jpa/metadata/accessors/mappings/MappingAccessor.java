@@ -101,13 +101,6 @@
 //       - 1391: JSON support in JPA
 package org.eclipse.persistence.internal.jpa.metadata.accessors.mappings;
 
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.EL_ACCESS_VIRTUAL;
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_ACCESS_FIELD;
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_ACCESS_PROPERTY;
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_CONVERT;
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_CONVERTS;
-import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_FETCH_EAGER;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -178,6 +171,13 @@ import org.eclipse.persistence.mappings.OneToOneMapping;
 import org.eclipse.persistence.mappings.foundation.AbstractDirectMapping;
 import org.eclipse.persistence.mappings.foundation.MapComponentMapping;
 import org.eclipse.persistence.mappings.foundation.MapKeyMapping;
+
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.EL_ACCESS_VIRTUAL;
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_ACCESS_FIELD;
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_ACCESS_PROPERTY;
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_CONVERT;
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_CONVERTS;
+import static org.eclipse.persistence.internal.jpa.metadata.MetadataConstants.JPA_FETCH_EAGER;
 
 /**
  * INTERNAL:

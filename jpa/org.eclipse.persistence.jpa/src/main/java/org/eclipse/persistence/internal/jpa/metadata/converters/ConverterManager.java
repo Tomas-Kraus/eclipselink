@@ -24,6 +24,9 @@ import java.util.function.Supplier;
 import org.eclipse.persistence.mappings.converters.Converter;
 import org.eclipse.persistence.mappings.converters.spi.ConverterProvider;
 
+/**
+ * Manage field value to JDBC data type converters loaded from SPI providers.
+ */
 public class ConverterManager {
 
     // Lazy singleton initialization in nested class
@@ -31,12 +34,21 @@ public class ConverterManager {
         private static final ConverterManager INSTANCE = new ConverterManager();
     }
 
+    /**
+     * Get singleton instance of converters manager.
+     *
+     * @return singleton instance of converters manager
+     */
     public static final ConverterManager getInstance() {
         return Instance.INSTANCE;
     }
 
+    // Converter metadata class name to converter instance Supplier mapping.
     private final Map<String, Supplier<Converter>> converters;
 
+    // Creates singleton instance of converters manager.
+    // Loads SPI service ConverterProvider implementations and builds converter metadata class name
+    // to converter instance Supplier mapping.
     private ConverterManager() {
         final Map<String, Supplier<Converter>> converters = new HashMap<>();
         final ServiceLoader<ConverterProvider> providers = ServiceLoader.load(ConverterProvider.class);
@@ -51,10 +63,25 @@ public class ConverterManager {
         this.converters = Collections.unmodifiableMap(converters);
     }
 
+    /**
+     * Check whether converter instance {@code Supplier} exists for provided {@code Converter} metadata
+     * class name.
+     *
+     * @param type {@code Converter} metadata fully qualified class name
+     * @return value of {@code true} when there exists mapping for provided class name
+     *         or {@code false} otherwise
+     */
     public boolean hasConverter(final String type) {
         return converters.containsKey(type);
     }
 
+    /**
+     * Create an instance of field value to JDBC data type converter mapped to provided {@code Converter}
+     * metadata class name.
+     *
+     * @param type {@code Converter} metadata fully qualified class name
+     * @return new instance of field value to JDBC data type converter
+     */
     public Converter createConverter(final String type) {
         return converters.get(type).get();
     }

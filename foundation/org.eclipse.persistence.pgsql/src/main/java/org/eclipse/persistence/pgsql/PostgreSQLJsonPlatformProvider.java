@@ -25,16 +25,26 @@ import org.eclipse.persistence.internal.databaseaccess.DatabasePlatform;
 import org.eclipse.persistence.internal.databaseaccess.spi.JsonPlatformProvider;
 import org.eclipse.persistence.platform.database.PostgreSQL10Platform;
 
+/**
+ * PostgreSQL database platform JSON extension service provider.
+ */
 public class PostgreSQLJsonPlatformProvider implements JsonPlatformProvider {
 
+    // Postgres platforms to JSON extension mapping.
     private static final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> PLATFORMS = initPlatforms();
 
+    // Initialize Postgres platforms JSON extension mapping.
     private static Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> initPlatforms() {
         final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> platforms = new HashMap<>(2);
         platforms.put(PostgreSQL10Platform.class, PostgreSQL10JsonPlatform::new);
         return Collections.unmodifiableMap(platforms);
     }
 
+    /**
+     * Get Postgres platforms to JSON extension mapping.
+     *
+     * @return Postgres platforms to JSON extension mapping
+     */
     @Override
     public Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> platforms() {
         return PLATFORMS;

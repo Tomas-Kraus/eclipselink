@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import org.eclipse.persistence.mappings.converters.Converter;
 
-// This provider is being used in JPA MappingAccessor.
+// This converter is being used in JPA MappingAccessor.
 /**
  * Java Service loader interface for data converters.
  */

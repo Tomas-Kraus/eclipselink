@@ -25,10 +25,15 @@ import org.eclipse.persistence.internal.databaseaccess.DatabasePlatform;
 import org.eclipse.persistence.internal.databaseaccess.spi.JsonPlatformProvider;
 import org.eclipse.persistence.platform.database.MySQLPlatform;
 
+/**
+ * Default database platform JSON extension service provider.
+ */
 public class DefaultJsonPlatformProvider implements JsonPlatformProvider {
 
+    // Default platforms to JSON extension mapping.
     private static final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> PLATFORMS = initPlatforms();
 
+    // Initialize default platforms JSON extension mapping.
     private static Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> initPlatforms() {
         final Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> platforms = new HashMap<>(2);
         // Default JSON platform with VARCHAR DB type.
@@ -38,6 +43,11 @@ public class DefaultJsonPlatformProvider implements JsonPlatformProvider {
         return Collections.unmodifiableMap(platforms);
     }
 
+    /**
+     * Get default platforms to JSON extension mapping.
+     *
+     * @return default platforms to JSON extension mapping
+     */
     @Override
     public Map<Class<? extends DatabasePlatform>, Supplier<DatabaseJsonPlatform>> platforms() {
         return PLATFORMS;

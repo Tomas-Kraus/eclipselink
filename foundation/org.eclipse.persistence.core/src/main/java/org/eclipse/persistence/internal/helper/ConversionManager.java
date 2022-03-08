@@ -44,10 +44,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
-
 import org.eclipse.persistence.config.SystemProperties;
 import org.eclipse.persistence.exceptions.ConversionException;
 import org.eclipse.persistence.exceptions.DatabaseException;
@@ -178,9 +174,8 @@ public class ConversionManager extends CoreConversionManager implements Serializ
         }
         if (sourceObject.getClass() == javaClass || javaClass == null || javaClass == ClassConstants.OBJECT
                 || javaClass == ClassConstants.BLOB || javaClass == ClassConstants.CLOB
-                // JSON has its own default converter registered
-                // || javaClass == JsonValue.class || javaClass == JsonObject.class || javaClass == JsonArray.class) {
-                || (javaClass != null && javaClass.getName().contains("json"))) {
+                // JSON has its own default converter registered. Direct jakarta.json class reference can't be used in core.
+                || javaClass.getName().contains("json")) {
             return (T) sourceObject;
         }
 

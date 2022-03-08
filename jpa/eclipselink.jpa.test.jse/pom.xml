@@ -178,11 +178,11 @@
                                 <exclude>CacheDeadLockDetectionTest*</exclude>
                             </excludes>
                             <includes>
-                                <include>*.json.Test*</include>
+                                <include>*.Test*</include>
                             </includes>
                         </configuration>
                     </execution>
-                    <!--execution>
+                    <execution>
                         <id>test-jpa-jse-deadlock</id>
                         <goals>
                             <goal>integration-test</goal>
@@ -201,7 +201,7 @@
                         <configuration>
                             <skip>${integration.test.skip.verify}</skip>
                         </configuration>
-                    </execution-->
+                    </execution>
                 </executions>
             </plugin>
             <plugin>

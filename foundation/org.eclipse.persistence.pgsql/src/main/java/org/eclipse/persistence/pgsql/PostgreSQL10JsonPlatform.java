@@ -14,7 +14,6 @@
 //     13/01/2022-4.0.0 Tomas Kraus - 1391: JSON support in JPA
 package org.eclipse.persistence.pgsql;
 
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Hashtable;
@@ -26,18 +25,32 @@ import jakarta.persistence.PersistenceException;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 import org.eclipse.persistence.json.JsonPlatform;
+import org.eclipse.persistence.platform.database.PostgreSQL10Platform;
 import org.postgresql.util.PGobject;
 
-public class PostgreSQL10JsonPlatform extends JsonPlatform {
+/**
+ * PostgreSQL 10 JSON database platform.
+ */
+public class PostgreSQL10JsonPlatform extends JsonPlatform implements PostgreSQL10Platform.PostgreSQL10JsonExtension {
 
     // Default Postgres 10 type for JSON data.
     private static final String JSON_DEFAULT_TYPE = "JSONB";
 
+    /**
+     * Update the mapping of Postgres 10 database types to class types for the schema framework.
+     *
+     * @param classTypeMapping {@code Map} with mappings to be updated.
+     */
     @Override
-    public void updateClassTypes(Map<String, Class<?>> fieldTypeMapping) {
-        fieldTypeMapping.put(JSON_DEFAULT_TYPE, jakarta.json.JsonValue.class);
+    public void updateClassTypes(Map<String, Class<?>> classTypeMapping) {
+        classTypeMapping.put(JSON_DEFAULT_TYPE, jakarta.json.JsonValue.class);
     }
 
+    /**
+     * Update the mapping of JSON class types to Postgres 10 database types for the schema framework.
+     *
+     * @param fieldTypeMapping {@code Map} with mappings to be updated.
+     */
     @Override
     public void updateFieldTypes(Hashtable<Class<?>, FieldTypeDefinition> fieldTypeMapping) {
         fieldTypeMapping.put(jakarta.json.JsonObject.class, new FieldTypeDefinition(JSON_DEFAULT_TYPE));
@@ -78,20 +91,33 @@ public class PostgreSQL10JsonPlatform extends JsonPlatform {
      *
      * @param resultSet source JDBC {@code ResultSet}
      * @param columnNumber index of column in JDBC {@code ResultSet}
+     * @param type target class to return, this class will be used to cast returned value
+     * @param <T> target type to return
      * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by common {@code JsonTypeConverter}
      * @throws SQLException if data could not be retrieved
      */
     @Override
-    public Object getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber) throws SQLException {
+    public <T> T getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber, final Class<T> type) throws SQLException {
         // ResultSet returns an instance of PGobject.
         final Object rawData = resultSet.getObject(columnNumber);
-        // Following code is called through reflection to avoid PGobject dependency.
         if (rawData instanceof PGobject) {
-            return ((PGobject) rawData).getValue();
+            return type.cast(((PGobject) rawData).getValue());
         } else if (rawData instanceof String) {
-            return rawData;
+            return type.cast(rawData);
         }
         throw new PersistenceException(ExceptionLocalization.buildMessage("json_pgsql_unknown_type"));
+    }
+
+    /**
+     * Check whether provided instance is an instance of {@code PGobject}.
+     *
+     * @param parameter an instance to check
+     * @return value of {@code true} when provided instance is an instance
+     *         of {@code PGobject} or {@code false} otherwise
+     */
+    @Override
+    public boolean isPgObjectInstance(final Object parameter) {
+        return parameter instanceof PGobject;
     }
 
 }

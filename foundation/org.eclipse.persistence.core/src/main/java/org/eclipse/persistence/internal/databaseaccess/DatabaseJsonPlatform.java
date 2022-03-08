@@ -15,8 +15,6 @@
 //       - 1391: JSON support in JPA
 package org.eclipse.persistence.internal.databaseaccess;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,68 +27,67 @@ import java.util.Map;
  */
 public interface DatabaseJsonPlatform {
 
-    String JSON_PLATFORM_CLASS_NAME = "org.eclipse.persistence.json.JsonPlatform";
-
-//    /**
-//     * Factory method to be used in {@link DatabasePlatform}.
-//     *
-//     * @param platformClass class of database platform
-//     */
-//    static DatabaseJsonPlatform createJsonPlatform(final Class<? extends DatabasePlatform> platformClass, final String className) {
-//        try {
-//            Class<?> jsonPlatformClass = Class.forName(className);
-//            final Method getFactory = jsonPlatformClass.getDeclaredMethod("getFactory");
-//            final DatabaseJsonPlatform.Factory factory = (DatabaseJsonPlatform.Factory) getFactory.invoke(null, null);
-//            return factory.create(platformClass);
-//        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-//            e.printStackTrace();
-//            return new DatabaseJsonPlatform() {
-//            };
-//        } catch (Throwable t) {
-//            t.printStackTrace();
-//            return new DatabaseJsonPlatform() {
-//            };
-//        }
-//    }
-//
-//    /**
-//     * Database platform JSON extension factory.
-//     * Provides an interface to implement JSON specific features.
-//     */
-//    interface Factory {
-//        /**
-//         * Creates an instance of Database platform JSON extension.
-//         *
-//         * @param platformClass source database platform class
-//         * @return Database platform JSON extension matching provided platform
-//         */
-//        DatabaseJsonPlatform create(final Class<? extends DatabasePlatform> platformClass);
-//    }
-
     /**
      * Retrieve JSON data from JDBC {@code ResultSet}.
      *
      * @param resultSet source JDBC {@code ResultSet}
      * @param columnNumber index of column in JDBC {@code ResultSet}
+     * @param type target class to return, this class will be used to cast returned value
+     * @param <T> target type to return
      * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by {@code JsonTypeConverter}
      * @throws SQLException if data could not be retrieved
      */
-    default Object getJsonDataFromResultSet(ResultSet resultSet, int columnNumber) throws SQLException {
-        return resultSet.getString(columnNumber);
+    default <T> T getJsonDataFromResultSet(final ResultSet resultSet, final int columnNumber, final Class<T> type) throws SQLException {
+        return type.cast(resultSet.getString(columnNumber));
     }
 
+    /**
+     * Update the mapping of database types to class types for the schema framework.
+     *
+     * @param fieldTypeMapping {@code Map} with mappings to be updated.
+     */
     default void updateFieldTypes(final Hashtable<Class<?>, FieldTypeDefinition> fieldTypeMapping) {}
 
-    default void updateClassTypes(final Map<String, Class<?>> fieldTypeMapping) {}
+    /**
+     * Update the mapping of class types to database types for the schema framework.
+     *
+     * @param classTypeMapping {@code Map} with mappings to be updated.
+     */
+    default void updateClassTypes(final Map<String, Class<?>> classTypeMapping) {}
 
+    /**
+     * Check whether provided {@link Type} is JSON type.
+     * JSON type is any class that implements {@code jakarta.json.JsonValue} interface.
+     * Default implementation always returns {@code false}, because {@code jakarta.json.JsonValue} interface
+     * is not supported in core module without extensions.
+     *
+     * @param type tyoe to be checked
+     * @return value of {@code true} when provide type implements {@code jakarta.json.JsonValue} interface
+     *         or {@code false} otherwose
+     */
     default boolean isJsonType(final Type type) {
         return false;
     }
 
+    /**
+     * JSON parameter marker in SQL expression of {@code PreparedStatement}.
+     * Default value is SQL parameter placeholder character {@code ?}.
+     *
+     * @return JSON parameter marker in SQL expression for current database platform.
+     */
     default String customParameterMarker() {
         return "?";
     }
 
+    /**
+     * Unwrap this {@link DatabaseJsonPlatform} instance as provided class.
+     *
+     * @param type target class to unwrap, this class will be used to cast returned value
+     * @param <T> target type to unwrap
+     * @return this {@link DatabaseJsonPlatform} instance as provided class
+     * @throws IllegalArgumentException when unwrap of this {@link DatabaseJsonPlatform} instance
+     *                                  is not possible
+     */
     default <T> T unwrap(final Class<T> type) {
         if (type.isAssignableFrom(getClass())) {
             return type.cast(this);
@@ -99,4 +96,3 @@ public interface DatabaseJsonPlatform {
     }
 
 }
-

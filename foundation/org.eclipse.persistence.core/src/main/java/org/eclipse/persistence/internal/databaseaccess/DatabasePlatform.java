@@ -37,10 +37,10 @@
 package org.eclipse.persistence.internal.databaseaccess;
 
 // javase imports
+
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -65,11 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Vector;
-
-import jakarta.json.Json;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonValue;
-import jakarta.json.JsonWriter;
 
 import org.eclipse.persistence.descriptors.ClassDescriptor;
 import org.eclipse.persistence.exceptions.DatabaseException;
@@ -276,7 +271,7 @@ public class DatabasePlatform extends DatasourcePlatform {
 
     // DatabaseJsonPlatform has lazy initialization
     /** JSON support for ResultSet data retrieval. */
-    private DatabaseJsonPlatform jsonPlatform;
+    private volatile DatabaseJsonPlatform jsonPlatform;
 
     /**
      * Creates an instance of default database platform.
@@ -3784,6 +3779,13 @@ public class DatabasePlatform extends DatasourcePlatform {
         }
     }
 
+    // Eager initialization in constructor causes CORBA Extension tests to fail.
+    /**
+     * Get JSON support extension instance.
+     * This instance is initialized lazily with 1st JSON support request.
+     *
+     * @return JSON support extension instance
+     */
     public DatabaseJsonPlatform getJsonPlatform() {
         if (jsonPlatform != null) {
             return jsonPlatform;
@@ -3795,57 +3797,5 @@ public class DatabasePlatform extends DatasourcePlatform {
             return jsonPlatform;
         }
     }
-
-//    // Common JSON types support:
-//    // Stores JsonValue instances as VARCHAR.
-//    /**
-//     * INTERNAL:
-//     * Convert JSON value field to JDBC statement type.
-//     * Common JSON storage type is {@code VARCHAR} so target Java type is {@code String}.
-//     *
-//     * @param <T> classification type
-//     * @param jsonValue source JSON value field
-//     * @return converted JDBC statement type
-//     */
-//    @SuppressWarnings("unchecked")
-//    public <T> T convertJsonValueToDataValue(final JsonValue jsonValue) {
-//        if (jsonValue == null) {
-//            return null;
-//        }
-//        final StringWriter sw = new StringWriter(128);
-//        try (final JsonWriter jw = Json.createWriter(sw)) {
-//            jw.write(jsonValue);
-//        }
-//        return (T) sw.toString();
-//    }
-//
-//    /**
-//     * Convert JDBC {@code ResultSet} type to JSON value field.
-//     * This method consumes value returned by {@link Object getJsonDataFromResultSet(ResultSet, int)}.
-//     * Both methods must be overwritten by platform specific code when jdbcValue is not String.
-//     *
-//     * @param jdbcValue source classification type value from JDBC
-//     * @return converted JSON field value
-//     */
-//    public JsonValue convertDataValueToJsonValue(Object jdbcValue) {
-//        if (jdbcValue == null) {
-//            return null;
-//        }
-//        try (final JsonReader jr = Json.createReader(new StringReader((String)jdbcValue))) {
-//            return jr.readValue();
-//        }
-//    }
-//
-//    /**
-//     * Retrieve JSON data from JDBC {@code ResultSet}.
-//     *
-//     * @param resultSet source JDBC {@code ResultSet}
-//     * @param columnNumber index of column in JDBC {@code ResultSet}
-//     * @return JSON data from JDBC {@code ResultSet} as {@code String} to be parsed by {@code JsonTypeConverter}
-//     * @throws SQLException if data could not be retrieved
-//     */
-//    public Object getJsonDataFromResultSet(ResultSet resultSet, int columnNumber) throws SQLException {
-//        return getJsonPlatform().getJsonDataFromResultSet(resultSet, columnNumber);
-//    }
 
 }
