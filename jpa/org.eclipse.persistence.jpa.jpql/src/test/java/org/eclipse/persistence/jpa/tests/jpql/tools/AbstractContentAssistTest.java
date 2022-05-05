@@ -2961,8 +2961,12 @@ public abstract class AbstractContentAssistTest extends ContentAssistTest {
     protected final void test_Function(String fragment,
                                        String ending,
                                        boolean subqueryAllowed) throws Exception {
-
-        test_Function(fragment, ending, subqueryAllowed, new TweakFunctionIdentifiers());
+        try {
+            test_Function(fragment, ending, subqueryAllowed, new TweakFunctionIdentifiers());
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        }
     }
 
     protected final void test_Function(String fragment,

@@ -51,8 +51,8 @@ import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConnectByClause;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DatabaseType;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DefaultEclipseLinkJPQLGrammar;
 import org.eclipse.persistence.jpa.jpql.parser.DefaultJPQLGrammar;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
@@ -2265,9 +2265,9 @@ public abstract class JPQLParserTest extends JPQLBasicTest {
 
         @Override
         public void test(Expression expression) {
-            assertInstance(expression, DateTime.class);
+            assertInstance(expression, CurrentDateTime.class);
 
-            DateTime dateTime = (DateTime) expression;
+            CurrentDateTime dateTime = (CurrentDateTime) expression;
             assertEquals(toString(), dateTime.toParsedText());
         }
 

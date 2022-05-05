@@ -161,11 +161,11 @@
                                 <exclude>CacheDeadLockDetectionTest*</exclude>
                             </excludes>
                             <includes>
-                                <include>*.Test*</include>
+                                <include>*.jpql.TestDateTimeFunctions*</include>
                             </includes>
                         </configuration>
                     </execution>
-                    <execution>
+                    <!--execution>
                         <id>test-jpa-jse-deadlock</id>
                         <goals>
                             <goal>integration-test</goal>
@@ -175,7 +175,7 @@
                                 <include>CacheDeadLockDetectionTest*</include>
                             </includes>
                         </configuration>
-                    </execution>
+                    </execution-->
                     <execution>
                         <id>verify-integration-tests</id>
                         <goals>

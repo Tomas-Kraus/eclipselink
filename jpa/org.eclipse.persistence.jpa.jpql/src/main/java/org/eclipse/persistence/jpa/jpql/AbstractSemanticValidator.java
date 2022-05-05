@@ -49,7 +49,7 @@ import org.eclipse.persistence.jpa.jpql.parser.CompoundExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteStatement;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
@@ -1244,12 +1244,12 @@ public abstract class AbstractSemanticValidator extends AbstractValidator {
     }
 
     /**
-     * Validates the given {@link DateTime}. The default behavior does not require to
+     * Validates the given {@link CurrentDateTime}. The default behavior does not require to
      * semantically validate it.
      *
-     * @param expression The {@link DateTime} to validate
+     * @param expression The {@link CurrentDateTime} to validate
      */
-    protected void validateDateTime(DateTime expression) {
+    protected void validateDateTime(CurrentDateTime expression) {
         super.visit(expression);
     }
 
@@ -2741,7 +2741,7 @@ public abstract class AbstractSemanticValidator extends AbstractValidator {
     }
 
     @Override
-    public final void visit(DateTime expression) {
+    public final void visit(CurrentDateTime expression) {
         validateDateTime(expression);
     }
 
