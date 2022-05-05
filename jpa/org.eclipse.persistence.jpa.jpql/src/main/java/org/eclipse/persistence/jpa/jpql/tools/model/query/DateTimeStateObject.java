@@ -15,7 +15,7 @@
 //
 package org.eclipse.persistence.jpa.jpql.tools.model.query;
 
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import static org.eclipse.persistence.jpa.jpql.parser.AbstractExpression.*;
 
 /**
@@ -34,7 +34,7 @@ import static org.eclipse.persistence.jpa.jpql.parser.AbstractExpression.*;
  *
  * <div><p><b>BNF:</b> <code>expression ::= {d 'yyyy-mm-dd'} | {t 'hh:mm:ss'} | {ts 'yyyy-mm-dd hh:mm:ss.f...'}</code></p></div>
  *
- * @see DateTime
+ * @see CurrentDateTime
  *
  * @version 2.4
  * @since 2.4
@@ -71,12 +71,12 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     @Override
-    public DateTime getExpression() {
-        return (DateTime) super.getExpression();
+    public CurrentDateTime getExpression() {
+        return (CurrentDateTime) super.getExpression();
     }
 
     /**
-     * Determines whether this {@link DateTime} represents the JPQL identifier
+     * Determines whether this {@link CurrentDateTime} represents the JPQL identifier
      * {@link org.eclipse.persistence.jpa.jpql.parser.Expression#CURRENT_DATE CURRENT_DATE}.
      *
      * @return <code>true</code> if this {@link org.eclipse.persistence.jpa.jpql.parser.Expression
@@ -88,7 +88,7 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     /**
-     * Determines whether this {@link DateTime} represents the JPQL identifier
+     * Determines whether this {@link CurrentDateTime} represents the JPQL identifier
      * {@link org.eclipse.persistence.jpa.jpql.parser.Expression#CURRENT_TIME CURRENT_TIME}.
      *
      * @return <code>true</code> if this {@link org.eclipse.persistence.jpa.jpql.parser.Expression
@@ -100,7 +100,7 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     /**
-     * Determines whether this {@link DateTime} represents the JPQL identifier
+     * Determines whether this {@link CurrentDateTime} represents the JPQL identifier
      * {@link org.eclipse.persistence.jpa.jpql.parser.Expression#CURRENT_TIMESTAMP CURRENT_TIMESTAMP}.
      *
      * @return <code>true</code> if this {@link org.eclipse.persistence.jpa.jpql.parser.Expression
@@ -112,7 +112,7 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     /**
-     * Determines whether this {@link DateTime} represents the JDBC escape syntax for date, time,
+     * Determines whether this {@link CurrentDateTime} represents the JDBC escape syntax for date, time,
      * timestamp formats.
      *
      * @return <code>true</code> if this {@link org.eclipse.persistence.jpa.jpql.parser.Expression
@@ -123,13 +123,13 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     /**
-     * Keeps a reference of the {@link DateTime parsed object} object, which should only be
+     * Keeps a reference of the {@link CurrentDateTime parsed object} object, which should only be
      * done when this object is instantiated during the conversion of a parsed JPQL query into
      * {@link StateObject StateObjects}.
      *
-     * @param expression The {@link DateTime parsed object} representing a date literal
+     * @param expression The {@link CurrentDateTime parsed object} representing a date literal
      */
-    public void setExpression(DateTime expression) {
+    public void setExpression(CurrentDateTime expression) {
         super.setExpression(expression);
     }
 }

@@ -72,7 +72,7 @@ import org.eclipse.persistence.jpa.jpql.parser.CollectionMemberExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CompoundExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.EmptyCollectionComparisonExpression;
 import org.eclipse.persistence.jpa.jpql.parser.EncapsulatedIdentificationVariableExpression;
@@ -1086,7 +1086,7 @@ public abstract class AbstractActualJPQLQueryFormatter extends BaseJPQLQueryForm
             toText(stateObject);
         }
         else {
-            DateTime expression = stateObject.getExpression();
+            CurrentDateTime expression = stateObject.getExpression();
             appendIdentifier((expression != null) ? expression.getActualIdentifier() : stateObject.getText(), stateObject.getText());
         }
     }

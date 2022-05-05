@@ -28,6 +28,8 @@ package org.eclipse.persistence.internal.jpa.jpql;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,8 +80,8 @@ import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConnectByClause;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DatabaseType;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteStatement;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
@@ -106,6 +108,7 @@ import org.eclipse.persistence.jpa.jpql.parser.KeyExpression;
 import org.eclipse.persistence.jpa.jpql.parser.KeywordExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LengthExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LikeExpression;
+import org.eclipse.persistence.jpa.jpql.parser.LocalDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.LocateExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LowerExpression;
 import org.eclipse.persistence.jpa.jpql.parser.MathDoubleExpression;
@@ -826,7 +829,7 @@ final class ExpressionBuilderVisitor implements EclipseLinkExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
 
         if (expression.isJDBCDate()) {
             queryExpression = queryContext.getBaseExpression();
@@ -1263,6 +1266,34 @@ final class ExpressionBuilderVisitor implements EclipseLinkExpressionVisitor {
 
         // Set the expression type
         type[0] = Boolean.class;
+    }
+
+    // LocalDateTime visitor helper method
+    private void buildLocalDate() {
+        queryExpression = queryExpression.localDate();
+        type[0] = LocalDate.class;
+    }
+
+    // LocalDateTime visitor helper method
+    private void buildLocalTime() {
+        queryExpression = queryExpression.localTime();
+        type[0] = LocalTime.class;
+    }
+
+    // LocalDateTime visitor helper method
+    private void buildLocalDateTime() {
+        queryExpression = queryExpression.localDateTime();
+        type[0] = LocalDateTime.class;
+    }
+
+    @Override
+    public void visit(LocalDateTime expression) {
+        queryExpression = queryContext.getBaseExpression();
+        expression.runByType(
+                this::buildLocalDate,
+                this::buildLocalTime,
+                this::buildLocalDateTime
+        );
     }
 
     @Override

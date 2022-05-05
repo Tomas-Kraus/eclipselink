@@ -36,7 +36,7 @@ import org.eclipse.persistence.jpa.jpql.parser.CollectionValuedPathExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
 import org.eclipse.persistence.jpa.jpql.parser.EclipseLinkAnonymousExpressionVisitor;
 import org.eclipse.persistence.jpa.jpql.parser.EntryExpression;
@@ -257,7 +257,7 @@ final class ReportItemBuilder extends EclipseLinkAnonymousExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
 
         Expression queryExpression = queryContext.buildExpression(expression, type);
 

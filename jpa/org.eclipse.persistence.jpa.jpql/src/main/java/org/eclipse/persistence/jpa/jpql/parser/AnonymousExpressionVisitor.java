@@ -131,7 +131,7 @@ public abstract class AnonymousExpressionVisitor implements ExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
         visit((Expression) expression);
     }
 
@@ -250,6 +250,11 @@ public abstract class AnonymousExpressionVisitor implements ExpressionVisitor {
 
     @Override
     public void visit(LikeExpression expression) {
+        visit((Expression) expression);
+    }
+
+    @Override
+    public void visit(LocalDateTime expression) {
         visit((Expression) expression);
     }
 

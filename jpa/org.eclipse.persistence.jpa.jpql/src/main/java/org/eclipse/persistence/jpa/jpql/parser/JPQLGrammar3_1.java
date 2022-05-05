@@ -19,9 +19,15 @@ import org.eclipse.persistence.jpa.jpql.ExpressionTools;
 import org.eclipse.persistence.jpa.jpql.JPAVersion;
 
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.CEILING;
-import static org.eclipse.persistence.jpa.jpql.parser.Expression.FLOOR;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.EXP;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.FLOOR;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.LN;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATE;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATETIME;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATETIME_ALT;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATE_ALT;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_TIME;
+import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_TIME_ALT;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.POWER;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.ROUND;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.SIGN;
@@ -128,6 +134,9 @@ public class JPQLGrammar3_1 extends AbstractJPQLGrammar {
         registerFunctionExpressionFactory(new MathExpressionFactory.Power(), POWER);
         registerFunctionExpressionFactory(new MathExpressionFactory.Round(), ROUND);
         registerFunctionExpressionFactory(new MathExpressionFactory.Sign(), SIGN);
+
+        registerFactory(new LocalDateTimeFactory());
+        addChildFactory(FunctionsReturningDatetimeBNF.ID, LocalDateTimeFactory.ID);
     }
 
     @Override
@@ -139,6 +148,13 @@ public class JPQLGrammar3_1 extends AbstractJPQLGrammar {
         registerFunctionIdentifier(POWER);
         registerFunctionIdentifier(ROUND);
         registerFunctionIdentifier(SIGN);
+
+        registerFunctionIdentifier(LOCAL_DATE);
+//        registerFunctionIdentifier(LOCAL_DATE_ALT);
+        registerFunctionIdentifier(LOCAL_TIME);
+//        registerFunctionIdentifier(LOCAL_TIME_ALT);
+        registerFunctionIdentifier(LOCAL_DATETIME);
+//        registerFunctionIdentifier(LOCAL_DATETIME_ALT);
     }
 
     @Override

@@ -112,7 +112,7 @@ public abstract class AbstractExpressionVisitor implements ExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
     }
 
     @Override
@@ -203,9 +203,13 @@ public abstract class AbstractExpressionVisitor implements ExpressionVisitor {
     public void visit(LikeExpression expression) {
     }
 
-        @Override
-        public void visit(LocateExpression expression) {
-        }
+    @Override
+    public void visit(LocalDateTime expression) {
+    }
+
+    @Override
+    public void visit(LocateExpression expression) {
+    }
 
     @Override
     public void visit(LowerExpression expression) {
