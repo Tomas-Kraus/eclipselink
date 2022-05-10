@@ -30,11 +30,8 @@ public final class LocalDateTimeFactory extends ExpressionFactory {
     public LocalDateTimeFactory() {
         super(ID,
                 Expression.LOCAL_DATE,
-//                Expression.LOCAL_DATE_ALT,
                 Expression.LOCAL_TIME,
-//                Expression.LOCAL_TIME_ALT,
                 Expression.LOCAL_DATETIME
-//                Expression.LOCAL_DATETIME_ALT
         );
     }
 

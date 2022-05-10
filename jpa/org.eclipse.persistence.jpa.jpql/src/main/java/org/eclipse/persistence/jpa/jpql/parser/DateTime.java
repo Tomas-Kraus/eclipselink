@@ -87,7 +87,7 @@ public abstract class DateTime extends AbstractExpression {
         }
     }
 
-    private String parseIdentifier(WordParser wordParser) {
+    protected String parseIdentifier(WordParser wordParser) {
 
         int position = wordParser.position();
         char character = wordParser.character(position + 8);

@@ -15,10 +15,9 @@
 //       - Issue 1442: Implement New JPA API 3.1.0 Features
 package org.eclipse.persistence.jpa.jpql.parser;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.eclipse.persistence.jpa.jpql.WordParser;
 
 /**
  * This {@link Expression} represents a date or time. It supports the following identifiers:
@@ -59,13 +58,10 @@ public final class LocalDateTime extends DateTime {
         private static final Type getType(final String name) {
             switch(name) {
                 case LOCAL_DATE:
-                case LOCAL_DATE_ALT:
                     return DATE;
                 case LOCAL_TIME:
-                case LOCAL_TIME_ALT:
                     return TIME;
                 case LOCAL_DATETIME:
-                case LOCAL_DATETIME_ALT:
                     return DATETIME;
                 default:
                     return null;
@@ -128,6 +124,36 @@ public final class LocalDateTime extends DateTime {
     @Override
     public void accept(ExpressionVisitor visitor) {
         visitor.visit(this);
+    }
+
+    // Full string matching is not required here.
+    // Using the fastest search for possible identifiers.
+    @Override
+    protected String parseIdentifier(WordParser wordParser) {
+        final int position = wordParser.position();
+        // Check chatacter after "LOCAL_" prefix:
+        // - LOCAL_[D]ATE
+        // - LOCAL_[D]ATETIME
+        // - LOCAL_[T]IME
+        switch(wordParser.character(position + 6))  {
+            case 'd':
+            case 'D':
+                //  Prefix is "LOCAL_D" and possible options:
+                // - LOCAL_DATE[\0]
+                // - LOCAL_DATE[T]IME
+                switch (wordParser.character(position + 10)) {
+                    // Prefix is "LOCAL_DATET" which points to LOCAL_DATETIME
+                    case 't':
+                    case 'T':
+                        return LOCAL_DATETIME;
+                    // Anything else points to LOCAL_DATE
+                    default:
+                        return LOCAL_DATE;
+                }
+                // Anything else points to LOCAL_TIME
+            default:
+                return LOCAL_TIME;
+        }
     }
 
 }

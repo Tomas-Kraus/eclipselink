@@ -24,10 +24,7 @@ import static org.eclipse.persistence.jpa.jpql.parser.Expression.FLOOR;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.LN;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATE;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATETIME;
-import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATETIME_ALT;
-import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_DATE_ALT;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_TIME;
-import static org.eclipse.persistence.jpa.jpql.parser.Expression.LOCAL_TIME_ALT;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.POWER;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.ROUND;
 import static org.eclipse.persistence.jpa.jpql.parser.Expression.SIGN;
@@ -150,11 +147,12 @@ public class JPQLGrammar3_1 extends AbstractJPQLGrammar {
         registerFunctionIdentifier(SIGN);
 
         registerFunctionIdentifier(LOCAL_DATE);
-//        registerFunctionIdentifier(LOCAL_DATE_ALT);
         registerFunctionIdentifier(LOCAL_TIME);
-//        registerFunctionIdentifier(LOCAL_TIME_ALT);
         registerFunctionIdentifier(LOCAL_DATETIME);
-//        registerFunctionIdentifier(LOCAL_DATETIME_ALT);
+
+//        registerIdentifierRole("LOCAL", IdentifierRole.CLAUSE); // Part of LOCAL TIME
+//        registerIdentifierRole("LOCAL_DATE", IdentifierRole.CLAUSE); // Part of LOCAL TIME
+
     }
 
     @Override

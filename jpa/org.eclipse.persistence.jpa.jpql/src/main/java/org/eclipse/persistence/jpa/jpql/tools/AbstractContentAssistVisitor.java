@@ -3226,12 +3226,30 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
     public void visit(LocalDateTime expression) {
         super.visit(expression);
         int position = queryPosition.getPosition(expression) - corrections.peek();
-        proposals.addIdentifier(LOCAL_DATE);
-        proposals.addIdentifier(LOCAL_DATE_ALT);
-        proposals.addIdentifier(LOCAL_TIME);
-        proposals.addIdentifier(LOCAL_TIME_ALT);
-        proposals.addIdentifier(LOCAL_DATETIME);
-        proposals.addIdentifier(LOCAL_DATETIME_ALT);
+        if (position < 6) {
+            proposals.addIdentifier(LOCAL_DATE);
+            proposals.addIdentifier(LOCAL_TIME);
+            proposals.addIdentifier(LOCAL_DATETIME);
+        } else if (expression.getText().length() > position) {
+            switch (expression.getText().charAt(6)) {
+                case 'D': case 'd':
+                    if (position < 10) {
+                        proposals.addIdentifier(LOCAL_DATE);
+                        proposals.addIdentifier(LOCAL_DATETIME);
+                    } else {
+                        switch (expression.getText().charAt(10)) {
+                            case 'T': case 't':
+                                proposals.addIdentifier(LOCAL_DATETIME);
+                                break;
+                            default:
+                                proposals.addIdentifier(LOCAL_DATE);
+                        }
+                    }
+                    break;
+                default:
+                    proposals.addIdentifier(LOCAL_TIME);
+            }
+        }
         addFunctionIdentifiers(expression.getParent().findQueryBNF(expression));
     }
 

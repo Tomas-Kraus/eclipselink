@@ -134,14 +134,57 @@ public class TestDateTimeFunctions {
         }
     }
 
-    // Test CriteriaQuery with localTime in WHERE condition.
-    // Strategy: SELECT DateTimeEntity WHERE time column < LOCAL TIME AND id = :id
-    //           LocalTime in entity is set to 0:00:00.0.
+    // Test JPQL with localTime in WHERE condition.
     @Test
     public void testCriteriaQueryWhereLocalTime() {
         final EntityManager em = emf.createEntityManager();
         try {
-            TypedQuery<Integer> query = em.createQuery("SELECT e.id FROM DateTimeEntity e WHERE e.time < LOCAL_TIME AND e.id = :id", Integer.class);
+            TypedQuery<Integer> query = em.createQuery(
+                    "SELECT e.id FROM DateTimeEntity e WHERE e.time < LOCAL_TIME AND e.id = :id", Integer.class);
+            query.setParameter("id", 4);
+            em.getTransaction().begin();
+            query.getSingleResult();
+            em.getTransaction().commit();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    // Test JPQL with localDate in WHERE condition.
+    @Test
+    public void testCriteriaQueryWhereLocalDate() {
+        final EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Integer> query = em.createQuery(
+                    "SELECT e.id FROM DateTimeEntity e WHERE e.date < LOCAL_DATE AND e.id = :id", Integer.class);
+            query.setParameter("id", 4);
+            em.getTransaction().begin();
+            query.getSingleResult();
+            em.getTransaction().commit();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    // Test JPQL with localDateTime in WHERE condition.
+    @Test
+    public void testCriteriaQueryWhereLocalDateTime() {
+        final EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Integer> query = em.createQuery(
+                    "SELECT e.id FROM DateTimeEntity e WHERE e.datetime < LOCAL_DATETIME AND e.id = :id", Integer.class);
             query.setParameter("id", 4);
             em.getTransaction().begin();
             query.getSingleResult();
