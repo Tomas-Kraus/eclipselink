@@ -25,6 +25,7 @@ import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
@@ -457,6 +458,63 @@ public class TestDateTimeFunctions {
             em.getTransaction().commit();
             long diffMilis = Duration.between(datetime, LocalDateTime.now().plusSeconds(dbOffset + 1)).toMillis();
             MatcherAssert.assertThat(diffMilis, Matchers.lessThan(30000L));
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    @Test
+    public void testJpqlQueryWhereLocalDate() {
+        final EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<DateTimeEntity> query = em.createQuery(
+                    "SELECT e FROM DateTimeEntity e WHERE e.date < LOCAL_DATE AND e.id = :id",
+                    DateTimeEntity.class);
+            query.setParameter("id", 4);
+            query.getSingleResult();
+            em.getTransaction().commit();
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    @Test
+    public void testJpqlQueryWhereLocalTime() {
+        final EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<DateTimeEntity> query = em.createQuery(
+                    "SELECT e FROM DateTimeEntity e WHERE e.time < LOCAL_TIME AND e.id = :id",
+                    DateTimeEntity.class);
+            query.setParameter("id", 4);
+            query.getSingleResult();
+            em.getTransaction().commit();
+        } finally {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            em.close();
+        }
+    }
+
+    @Test
+    public void testJpqlQueryWhereLocalDateTime() {
+        final EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            TypedQuery<DateTimeEntity> query = em.createQuery(
+                    "SELECT e FROM DateTimeEntity e WHERE e.datetime < LOCAL_DATETIME AND e.id = :id",
+                    DateTimeEntity.class);
+            query.setParameter("id", 4);
+            query.getSingleResult();
+            em.getTransaction().commit();
         } finally {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();

@@ -122,6 +122,18 @@ public final class DateTime extends AbstractExpression {
         return getText() == CURRENT_TIMESTAMP;
     }
 
+    public boolean isLocalDate() {
+        return getText() == Expression.LOCAL_DATE_ALT;
+    }
+
+    public boolean isLocalTime() {
+        return getText() == Expression.LOCAL_TIME_ALT;
+    }
+
+    public boolean isLocalDateTime() {
+        return getText() == Expression.LOCAL_DATETIME_ALT;
+    }
+
     /**
      * Determines whether this {@link DateTime} represents the JDBC escape syntax for date, time,
      * timestamp formats.
@@ -151,19 +163,50 @@ public final class DateTime extends AbstractExpression {
     private String parseIdentifier(WordParser wordParser) {
 
         int position = wordParser.position();
-        char character = wordParser.character(position + 8);
-
-        if (character == 'd' || character == 'D') {
-            return CURRENT_DATE;
+        // LOCAL_ or CURRENT_
+        switch(wordParser.character(position)) {
+            // "CURRENT_" prefix
+            case 'C': case 'c':
+                // DATE, TIME or TIMESTAMP
+                switch(wordParser.character(position + 8)) {
+                    // "CURRENT_D" prefix
+                    case 'D': case 'd':
+                        return CURRENT_DATE;
+                    default:
+                        switch (wordParser.character(position + 12)) {
+                            case 'S': case 's':
+                                return CURRENT_TIMESTAMP;
+                            default:
+                                return CURRENT_TIME;
+                        }
+                }
+            // "LOCAL_" prefix
+            default:
+                // DATE, TIME or DATETIME
+                switch(wordParser.character(position + 6)) {
+                    case 'T': case 't':
+                        return LOCAL_TIME_ALT;
+                    default:
+                        switch (wordParser.character(position + 10)) {
+                            case 'T': case 't':
+                                return LOCAL_DATETIME_ALT;
+                            default:
+                                return LOCAL_DATE_ALT;
+                        }
+                }
         }
 
-        character = wordParser.character(position + 12);
-
-        if (character == 's' || character == 'S') {
-            return CURRENT_TIMESTAMP;
-        }
-
-        return CURRENT_TIME;
+//        if (character == 'd' || character == 'D') {
+//            return CURRENT_DATE;
+//        }
+//
+//        character = wordParser.character(position + 12);
+//
+//        if (character == 's' || character == 'S') {
+//            return CURRENT_TIMESTAMP;
+//        }
+//
+//        return CURRENT_TIME;
     }
 
     private void parseJDBCEscapeFormat(WordParser wordParser) {

@@ -19,6 +19,9 @@ package org.eclipse.persistence.jpa.jpql.tools.resolver;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -558,6 +561,15 @@ public abstract class ResolverBuilder implements ExpressionVisitor {
         }
         else if (expression.isCurrentTimestamp()) {
             resolver = buildClassResolver(Timestamp.class);
+        }
+        else if (expression.isLocalDate()) {
+            resolver = buildClassResolver(LocalDate.class);
+        }
+        else if (expression.isLocalTime()) {
+            resolver = buildClassResolver(LocalTime.class);
+        }
+        else if (expression.isLocalDateTime()) {
+            resolver = buildClassResolver(LocalDateTime.class);
         }
         else {
             String text = expression.getText();

@@ -111,6 +111,18 @@ public class DateTimeStateObject extends SimpleStateObject {
         return CURRENT_TIMESTAMP.equalsIgnoreCase(getText());
     }
 
+    public boolean isLocalDate() {
+        return LOCAL_DATE_ALT.equalsIgnoreCase(getText());
+    }
+
+    public boolean isLocalTime() {
+        return LOCAL_TIME_ALT.equalsIgnoreCase(getText());
+    }
+
+    public boolean isLocalDateTime() {
+        return LOCAL_DATETIME_ALT.equalsIgnoreCase(getText());
+    }
+
     /**
      * Determines whether this {@link DateTime} represents the JDBC escape syntax for date, time,
      * timestamp formats.

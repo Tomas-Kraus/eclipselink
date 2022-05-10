@@ -28,6 +28,9 @@ package org.eclipse.persistence.internal.jpa.jpql;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -860,6 +863,18 @@ final class ExpressionBuilderVisitor implements EclipseLinkExpressionVisitor {
             else if (expression.isCurrentTimestamp()) {
                 queryExpression = queryExpression.currentTimeStamp();
                 type[0] = Timestamp.class;
+            }
+            else if (expression.isLocalDate()) {
+                queryExpression = queryExpression.localDate();
+                type[0] = LocalDate.class;
+            }
+            else if (expression.isLocalTime()) {
+                queryExpression = queryExpression.localTime();
+                type[0] = LocalTime.class;
+            }
+            else if (expression.isLocalDateTime()) {
+                queryExpression = queryExpression.localDateTime();
+                type[0] = LocalDateTime.class;
             }
             else {
                 throw new IllegalArgumentException("The DateTime is unknown: " + expression);
