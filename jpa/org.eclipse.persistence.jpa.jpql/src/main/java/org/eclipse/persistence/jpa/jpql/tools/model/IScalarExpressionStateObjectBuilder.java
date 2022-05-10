@@ -151,6 +151,12 @@ public interface IScalarExpressionStateObjectBuilder<T extends IScalarExpression
      */
     T currentTimestamp();
 
+    public T isLocalDate();
+
+    public T isLocalTime();
+
+    public T isLocalDateTime();
+
     /**
      * Creates a new date using the JDBC syntax of a date.
      *

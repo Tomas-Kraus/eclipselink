@@ -434,6 +434,24 @@ public interface Expression {
      */
     String LN = "LN";
 
+    // JPQL expressions for java.time local date and time.
+    // Alternative keywords are following former current date and time syntax.
+
+    /**
+     * The constant for 'LOCAL_DATE'.
+     */
+    String LOCAL_DATE = "LOCAL_DATE";
+
+    /**
+     * The constant for 'LOCAL_TIME'.
+     */
+    String LOCAL_TIME = "LOCAL_TIME";
+
+    /**
+     * The constant for 'LOCAL_DATETIME'.
+     */
+    String LOCAL_DATETIME = "LOCAL_DATETIME";
+
     /**
      * The constant for 'LOCATE'.
      */

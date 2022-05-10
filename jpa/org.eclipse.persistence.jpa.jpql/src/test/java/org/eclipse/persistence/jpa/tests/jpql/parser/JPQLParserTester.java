@@ -468,6 +468,18 @@ public final class JPQLParserTester {
         return new DateTimeTester(CURRENT_TIMESTAMP);
     }
 
+    public static DateTimeTester LOCAL_DATE() {
+        return new DateTimeTester(LOCAL_DATE);
+    }
+
+    public static DateTimeTester LOCAL_TIME() {
+        return new DateTimeTester(LOCAL_TIME);
+    }
+
+    public static DateTimeTester LOCAL_DATETIME() {
+        return new DateTimeTester(LOCAL_DATETIME);
+    }
+
     public static DatabaseTypeTester databaseType(String databaseType) {
         return databaseType(databaseType, -1);
     }

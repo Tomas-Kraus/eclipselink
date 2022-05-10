@@ -250,6 +250,21 @@ public abstract class AbstractScalarExpressionStateObjectBuilder<T extends IScal
     }
 
     @Override
+    public T isLocalDate() {
+        return date(LOCAL_DATE);
+    }
+
+    @Override
+    public T isLocalTime() {
+        return date(LOCAL_TIME);
+    }
+
+    @Override
+    public T isLocalDateTime() {
+        return date(LOCAL_DATETIME);
+    }
+
+    @Override
     public T date(String jdbcDate) {
         StateObject stateObject = new DateTimeStateObject(parent, jdbcDate);
         add(stateObject);
