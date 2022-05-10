@@ -2857,13 +2857,13 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
         }
 
         // Within the identifier
-        if (expression.isLocalDate()      && isPositionWithin(position, Expression.LOCAL_DATE_ALT) ||
-            expression.isLocalTime()      && isPositionWithin(position, Expression.LOCAL_TIME_ALT) ||
-            expression.isLocalDateTime()  && isPositionWithin(position, Expression.LOCAL_DATETIME_ALT)
+        if (expression.isLocalDate()      && isPositionWithin(position, Expression.LOCAL_DATE) ||
+            expression.isLocalTime()      && isPositionWithin(position, Expression.LOCAL_TIME) ||
+            expression.isLocalDateTime()  && isPositionWithin(position, Expression.LOCAL_DATETIME)
         ) {
-            proposals.addIdentifier(LOCAL_DATE_ALT);
-            proposals.addIdentifier(LOCAL_TIME_ALT);
-            proposals.addIdentifier(LOCAL_DATETIME_ALT);
+            proposals.addIdentifier(LOCAL_DATE);
+            proposals.addIdentifier(LOCAL_TIME);
+            proposals.addIdentifier(LOCAL_DATETIME);
 
             addFunctionIdentifiers(expression.getParent().findQueryBNF(expression));
         }

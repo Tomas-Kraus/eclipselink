@@ -438,34 +438,19 @@ public interface Expression {
     // Alternative keywords are following former current date and time syntax.
 
     /**
-     * The constant for 'LOCAL DATE'.
-     */
-    String LOCAL_DATE = "LOCAL DATE";
-
-    /**
      * The constant for 'LOCAL_DATE'.
      */
-    String LOCAL_DATE_ALT = "LOCAL_DATE";
-
-    /**
-     * The constant for 'LOCAL TIME'.
-     */
-    String LOCAL_TIME = "LOCAL TIME";
+    String LOCAL_DATE = "LOCAL_DATE";
 
     /**
      * The constant for 'LOCAL_TIME'.
      */
-    String LOCAL_TIME_ALT = "LOCAL_TIME";
-
-    /**
-     * The constant for 'LOCAL DATETIME'.
-     */
-    String LOCAL_DATETIME = "LOCAL DATETIME";
+    String LOCAL_TIME = "LOCAL_TIME";
 
     /**
      * The constant for 'LOCAL_DATETIME'.
      */
-    String LOCAL_DATETIME_ALT = "LOCAL_DATETIME";
+    String LOCAL_DATETIME = "LOCAL_DATETIME";
 
     /**
      * The constant for 'LOCATE'.

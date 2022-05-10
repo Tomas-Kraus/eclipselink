@@ -469,15 +469,15 @@ public final class JPQLParserTester {
     }
 
     public static DateTimeTester LOCAL_DATE() {
-        return new DateTimeTester(LOCAL_DATE_ALT);
+        return new DateTimeTester(LOCAL_DATE);
     }
 
     public static DateTimeTester LOCAL_TIME() {
-        return new DateTimeTester(LOCAL_TIME_ALT);
+        return new DateTimeTester(LOCAL_TIME);
     }
 
     public static DateTimeTester LOCAL_DATETIME() {
-        return new DateTimeTester(LOCAL_DATETIME_ALT);
+        return new DateTimeTester(LOCAL_DATETIME);
     }
 
     public static DatabaseTypeTester databaseType(String databaseType) {

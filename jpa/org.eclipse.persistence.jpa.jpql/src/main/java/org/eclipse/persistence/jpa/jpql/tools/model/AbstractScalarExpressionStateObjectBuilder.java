@@ -251,17 +251,17 @@ public abstract class AbstractScalarExpressionStateObjectBuilder<T extends IScal
 
     @Override
     public T isLocalDate() {
-        return date(LOCAL_DATE_ALT);
+        return date(LOCAL_DATE);
     }
 
     @Override
     public T isLocalTime() {
-        return date(LOCAL_TIME_ALT);
+        return date(LOCAL_TIME);
     }
 
     @Override
     public T isLocalDateTime() {
-        return date(LOCAL_DATETIME_ALT);
+        return date(LOCAL_DATETIME);
     }
 
     @Override

@@ -123,15 +123,15 @@ public final class DateTime extends AbstractExpression {
     }
 
     public boolean isLocalDate() {
-        return getText() == Expression.LOCAL_DATE_ALT;
+        return getText() == Expression.LOCAL_DATE;
     }
 
     public boolean isLocalTime() {
-        return getText() == Expression.LOCAL_TIME_ALT;
+        return getText() == Expression.LOCAL_TIME;
     }
 
     public boolean isLocalDateTime() {
-        return getText() == Expression.LOCAL_DATETIME_ALT;
+        return getText() == Expression.LOCAL_DATETIME;
     }
 
     /**
@@ -185,13 +185,13 @@ public final class DateTime extends AbstractExpression {
                 // DATE, TIME or DATETIME
                 switch(wordParser.character(position + 6)) {
                     case 'T': case 't':
-                        return LOCAL_TIME_ALT;
+                        return LOCAL_TIME;
                     default:
                         switch (wordParser.character(position + 10)) {
                             case 'T': case 't':
-                                return LOCAL_DATETIME_ALT;
+                                return LOCAL_DATETIME;
                             default:
-                                return LOCAL_DATE_ALT;
+                                return LOCAL_DATE;
                         }
                 }
         }

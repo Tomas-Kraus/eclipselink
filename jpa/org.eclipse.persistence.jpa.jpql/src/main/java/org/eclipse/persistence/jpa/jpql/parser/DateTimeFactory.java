@@ -43,9 +43,9 @@ public final class DateTimeFactory extends ExpressionFactory {
         super(ID, Expression.CURRENT_DATE,
                   Expression.CURRENT_TIME,
                   Expression.CURRENT_TIMESTAMP,
-                  Expression.LOCAL_DATE_ALT,
-                  Expression.LOCAL_TIME_ALT,
-                  Expression.LOCAL_DATETIME_ALT,
+                  Expression.LOCAL_DATE,
+                  Expression.LOCAL_TIME,
+                  Expression.LOCAL_DATETIME,
                   "{");
     }
 

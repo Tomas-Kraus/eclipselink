@@ -112,15 +112,15 @@ public class DateTimeStateObject extends SimpleStateObject {
     }
 
     public boolean isLocalDate() {
-        return LOCAL_DATE_ALT.equalsIgnoreCase(getText());
+        return LOCAL_DATE.equalsIgnoreCase(getText());
     }
 
     public boolean isLocalTime() {
-        return LOCAL_TIME_ALT.equalsIgnoreCase(getText());
+        return LOCAL_TIME.equalsIgnoreCase(getText());
     }
 
     public boolean isLocalDateTime() {
-        return LOCAL_DATETIME_ALT.equalsIgnoreCase(getText());
+        return LOCAL_DATETIME.equalsIgnoreCase(getText());
     }
 
     /**
