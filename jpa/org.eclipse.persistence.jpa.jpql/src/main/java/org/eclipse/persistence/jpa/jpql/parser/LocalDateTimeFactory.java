@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,39 +11,28 @@
  */
 
 // Contributors:
-//     Oracle - initial API and implementation
-//
+//     02/01/2022: Tomas Kraus
+//       - Issue 1442: Implement New JPA API 3.1.0 Features
 package org.eclipse.persistence.jpa.jpql.parser;
 
 import org.eclipse.persistence.jpa.jpql.WordParser;
 
-/**
- * This {@link DateTimeFactory} creates a new {@link CurrentDateTime} when the portion of the query to
- * parse starts with <b>CURRENT_DATE</b>, <b>CURRENT_TIME</b>, <b>CURRENT_TIMESTAMP</b> or with the
- * JDBC escape format used for date/time/timestamp.
- *
- * @see CurrentDateTime
- *
- * @version 2.4
- * @since 2.3
- * @author Pascal Filion
- */
-@SuppressWarnings("nls")
-public final class DateTimeFactory extends ExpressionFactory {
+public final class LocalDateTimeFactory extends ExpressionFactory {
 
     /**
      * The unique identifier of this {@link DateTimeFactory}.
      */
-    public static final String ID = "functions_returning_datetime";
+    public static final String ID = "functions_returning_local_datetime";
 
     /**
-     * Creates a new <code>DateTimeFactory</code>.
+     * Creates a new <code>LocalDateTimeFactory</code>.
      */
-    public DateTimeFactory() {
-        super(ID, Expression.CURRENT_DATE,
-                  Expression.CURRENT_TIME,
-                  Expression.CURRENT_TIMESTAMP,
-                  "{");
+    public LocalDateTimeFactory() {
+        super(ID,
+                Expression.LOCAL_DATE,
+                Expression.LOCAL_TIME,
+                Expression.LOCAL_DATETIME
+        );
     }
 
     @Override
@@ -54,8 +43,9 @@ public final class DateTimeFactory extends ExpressionFactory {
                                                  AbstractExpression expression,
                                                  boolean tolerant) {
 
-        expression = new CurrentDateTime(parent);
+        expression = new LocalDateTime(parent);
         expression.parse(wordParser, tolerant);
         return expression;
     }
+
 }

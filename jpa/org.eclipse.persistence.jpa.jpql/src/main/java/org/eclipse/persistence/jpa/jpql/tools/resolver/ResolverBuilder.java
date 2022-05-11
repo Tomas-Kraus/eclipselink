@@ -19,6 +19,8 @@ package org.eclipse.persistence.jpa.jpql.tools.resolver;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +50,7 @@ import org.eclipse.persistence.jpa.jpql.parser.ComparisonExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteStatement;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
@@ -73,6 +75,7 @@ import org.eclipse.persistence.jpa.jpql.parser.KeyExpression;
 import org.eclipse.persistence.jpa.jpql.parser.KeywordExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LengthExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LikeExpression;
+import org.eclipse.persistence.jpa.jpql.parser.LocalDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.LocateExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LowerExpression;
 import org.eclipse.persistence.jpa.jpql.parser.MathDoubleExpression;
@@ -548,7 +551,7 @@ public abstract class ResolverBuilder implements ExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
 
         if (expression.isCurrentDate()) {
             resolver = buildClassResolver(Date.class);
@@ -712,6 +715,15 @@ public abstract class ResolverBuilder implements ExpressionVisitor {
     @Override
     public void visit(LikeExpression expression) {
         resolver = buildClassResolver(Boolean.class);
+    }
+
+    @Override
+    public void visit(LocalDateTime expression) {
+        resolver = expression.getValueByType(
+                () -> buildClassResolver(LocalDate.class),
+                () -> buildClassResolver(LocalTime.class),
+                () -> buildClassResolver(LocalDateTime.class)
+        );
     }
 
     @Override

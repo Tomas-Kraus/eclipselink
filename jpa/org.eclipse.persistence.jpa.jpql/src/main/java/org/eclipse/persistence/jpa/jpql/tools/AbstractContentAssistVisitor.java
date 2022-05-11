@@ -76,7 +76,7 @@ import org.eclipse.persistence.jpa.jpql.parser.ConditionalExpressionBNF;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorItemBNF;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteStatement;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
@@ -109,6 +109,7 @@ import org.eclipse.persistence.jpa.jpql.parser.KeyExpression;
 import org.eclipse.persistence.jpa.jpql.parser.KeywordExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LengthExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LikeExpression;
+import org.eclipse.persistence.jpa.jpql.parser.LocalDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.LocateExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LogicalExpression;
 import org.eclipse.persistence.jpa.jpql.parser.LowerExpression;
@@ -2840,7 +2841,7 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
         super.visit(expression);
         int position = queryPosition.getPosition(expression) - corrections.peek();
 
@@ -3219,6 +3220,37 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
                 }
             }
         }
+    }
+
+    @Override
+    public void visit(LocalDateTime expression) {
+        super.visit(expression);
+        int position = queryPosition.getPosition(expression) - corrections.peek();
+        if (position < 6) {
+            proposals.addIdentifier(LOCAL_DATE);
+            proposals.addIdentifier(LOCAL_TIME);
+            proposals.addIdentifier(LOCAL_DATETIME);
+        } else if (expression.getText().length() > position) {
+            switch (expression.getText().charAt(6)) {
+                case 'D': case 'd':
+                    if (position < 10) {
+                        proposals.addIdentifier(LOCAL_DATE);
+                        proposals.addIdentifier(LOCAL_DATETIME);
+                    } else {
+                        switch (expression.getText().charAt(10)) {
+                            case 'T': case 't':
+                                proposals.addIdentifier(LOCAL_DATETIME);
+                                break;
+                            default:
+                                proposals.addIdentifier(LOCAL_DATE);
+                        }
+                    }
+                    break;
+                default:
+                    proposals.addIdentifier(LOCAL_TIME);
+            }
+        }
+        addFunctionIdentifiers(expression.getParent().findQueryBNF(expression));
     }
 
     @Override
@@ -5515,7 +5547,7 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
         }
 
         @Override
-        public void visit(DateTime expression) {
+        public void visit(CurrentDateTime expression) {
 
             if (conditionalExpression && (appendableType == AppendableType.COMPLETE)) {
                 appendable = false;
@@ -5791,6 +5823,10 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
 
                 conditionalExpression = oldConditionalExpression;
             }
+        }
+
+        public void visit(LocalDateTime expression) {
+            appendable = !conditionalExpression || appendableType != AppendableType.COMPLETE;
         }
 
         @Override
@@ -7370,7 +7406,7 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
         }
 
         @Override
-        public void visit(DateTime expression) {
+        public void visit(CurrentDateTime expression) {
 
             if (!expression.isJDBCDate()) {
                 if (badExpression) {
@@ -7693,6 +7729,18 @@ public abstract class AbstractContentAssistVisitor extends AnonymousExpressionVi
                 }
 
                 queryPosition.addPosition(expression, expression.getLength() - correction);
+            }
+        }
+
+        @Override
+        public void visit(LocalDateTime expression) {
+            if (badExpression) {
+                correction = expression.getLength() - positionWithinInvalidExpression;
+                queryPosition.setExpression(expression);
+                queryPosition.addPosition(expression, positionWithinInvalidExpression);
+            } else if (invalidExpression == expression) {
+                queryPosition.setExpression(expression);
+                queryPosition.addPosition(expression, positionWithinInvalidExpression);
             }
         }
 

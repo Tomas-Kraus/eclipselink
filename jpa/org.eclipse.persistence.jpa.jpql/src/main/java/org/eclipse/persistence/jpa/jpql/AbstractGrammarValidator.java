@@ -59,7 +59,7 @@ import org.eclipse.persistence.jpa.jpql.parser.ConcatExpression;
 import org.eclipse.persistence.jpa.jpql.parser.ConditionalExpressionBNF;
 import org.eclipse.persistence.jpa.jpql.parser.ConstructorExpression;
 import org.eclipse.persistence.jpa.jpql.parser.CountFunction;
-import org.eclipse.persistence.jpa.jpql.parser.DateTime;
+import org.eclipse.persistence.jpa.jpql.parser.CurrentDateTime;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteClause;
 import org.eclipse.persistence.jpa.jpql.parser.DeleteStatement;
 import org.eclipse.persistence.jpa.jpql.parser.DivisionExpression;
@@ -1152,10 +1152,10 @@ public abstract class AbstractGrammarValidator extends AbstractValidator {
     }
 
     protected DateTimeVisitor getDateTimeVisitor() {
-        DateTimeVisitor visitor = getHelper(DateTime.CURRENT_TIMESTAMP);
+        DateTimeVisitor visitor = getHelper(CurrentDateTime.CURRENT_TIMESTAMP);
         if (visitor == null) {
             visitor = buildDateTimeVisitor();
-            registerHelper(DateTime.CURRENT_TIMESTAMP, visitor);
+            registerHelper(CurrentDateTime.CURRENT_TIMESTAMP, visitor);
         }
         return visitor;
     }
@@ -3016,7 +3016,7 @@ public abstract class AbstractGrammarValidator extends AbstractValidator {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
 
         String dateTime = expression.getText();
 
@@ -4877,7 +4877,7 @@ public abstract class AbstractGrammarValidator extends AbstractValidator {
     protected static final class DateTimeVisitor extends AbstractExpressionVisitor {
 
         /**
-         * Determines whether the visited {@link Expression} is {@link DateTime} or not.
+         * Determines whether the visited {@link Expression} is {@link CurrentDateTime} or not.
          */
         public boolean dateTime;
 
@@ -4888,7 +4888,7 @@ public abstract class AbstractGrammarValidator extends AbstractValidator {
         }
 
         @Override
-        public void visit(DateTime expression) {
+        public void visit(CurrentDateTime expression) {
             dateTime = true;
         }
     }

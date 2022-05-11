@@ -163,11 +163,11 @@ public interface ExpressionVisitor {
     void visit(CountFunction expression);
 
     /**
-     * Visits the {@link DateTime} expression.
+     * Visits the {@link CurrentDateTime} expression.
      *
      * @param expression The {@link Expression} to visit
      */
-    void visit(DateTime expression);
+    void visit(CurrentDateTime expression);
 
     /**
      * Visits the {@link DeleteClause} expression.
@@ -322,6 +322,13 @@ public interface ExpressionVisitor {
      * @param expression The {@link Expression} to visit
      */
     void visit(LikeExpression expression);
+
+    /**
+     * Visits the {@link LocalDateTime} expression.
+     *
+     * @param expression The {@link Expression} to visit
+     */
+    void visit(LocalDateTime expression);
 
     /**
      * Visits the {@link LocateExpression} expression.

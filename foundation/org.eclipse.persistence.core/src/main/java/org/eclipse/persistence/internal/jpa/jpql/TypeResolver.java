@@ -23,6 +23,8 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -565,7 +567,7 @@ final class TypeResolver implements EclipseLinkExpressionVisitor {
     }
 
     @Override
-    public void visit(DateTime expression) {
+    public void visit(CurrentDateTime expression) {
 
         if (expression.isCurrentDate()) {
             type = Date.class;
@@ -753,6 +755,15 @@ final class TypeResolver implements EclipseLinkExpressionVisitor {
     @Override
     public void visit(LikeExpression expression) {
         type = Boolean.class;
+    }
+
+    @Override
+    public void visit(LocalDateTime expression) {
+        type = expression.getValueByType(
+                () -> LocalDate.class,
+                () -> LocalTime.class,
+                () -> LocalDateTime.class
+        );
     }
 
     @Override
