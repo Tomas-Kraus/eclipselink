@@ -56,6 +56,7 @@ import org.eclipse.persistence.internal.helper.DatabaseTable;
 import org.eclipse.persistence.internal.localization.ToStringLocalization;
 import org.eclipse.persistence.internal.sessions.AbstractRecord;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
+import org.eclipse.persistence.jpa.jpql.parser.EmptyCollectionComparisonExpression;
 import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.eclipse.persistence.queries.DatabaseQuery;
 import org.eclipse.persistence.queries.ReadQuery;
@@ -2603,6 +2604,9 @@ public abstract class Expression implements Serializable, Cloneable {
      *     Java: employee.getPhoneNumbers().size() == 0
      *     SQL: SELECT ... FROM EMP t0 WHERE (
      *      (SELECT COUNT(*) FROM PHONE t1 WHERE (t0.EMP_ID = t1.EMP_ID)) = 0)
+     *
+     *     SQL: SELECT ... FROM EMP t0 WHERE
+     *      NOT EXISTS(SELECT 1 FROM PHONE t1 WHERE t0.EMP_ID = t1.EMP_ID)
      * </pre></blockquote>
      * This is a case where a fast operation in java does not translate to an
      * equally fast operation in SQL, requiring a correlated subselect.
@@ -2610,6 +2614,16 @@ public abstract class Expression implements Serializable, Cloneable {
      */
     public Expression isEmpty(String attributeName) {
         return size(attributeName).equal(0);
+    }
+
+    public Expression isEmpty(String attributeName, EmptyCollectionComparisonExpression parent) {
+        //ClassDescriptor descriptor = parent.
+        //ReportQuery subquery = new ReportQuery();
+
+        SubSelectExpression subSelect = SubSelectExpression.createSubSelectExpressionForExists2(this, attributeName);
+//        return size(attributeName).equal(0);
+        ExpressionOperator anOperator = getOperator(ExpressionOperator.NotExists);
+        return anOperator.expressionFor(subSelect);
     }
 
     /**
@@ -3308,7 +3322,7 @@ public abstract class Expression implements Serializable, Cloneable {
         subQuery.setSelectionCriteria(criteria);
         return notExists(subQuery);
     }
-
+/**/
     /**
      * INTERNAL:
      * Normalize into a structure that is printable.

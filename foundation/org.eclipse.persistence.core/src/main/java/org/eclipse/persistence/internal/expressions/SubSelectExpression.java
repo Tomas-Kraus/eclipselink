@@ -45,13 +45,26 @@ public class SubSelectExpression extends BaseExpression {
     protected Class<?> returnType;
     protected Expression criteriaBase;
 
+    // This subselect is part of isEmpty expression. Default value is false except being created
+    // by createSubSelectExpressionForExists
+    private final boolean isEmptySubSelect;
+
     public SubSelectExpression() {
         super();
+        isEmptySubSelect = false;
         subQuery = new ReportQuery();
+    }
+
+    // Creates an instance of SubSelectExpression for createSubSelectExpressionForExists method
+    private SubSelectExpression(Expression baseExpression, boolean isEmptySubSelect) {
+        super(baseExpression);
+        this.isEmptySubSelect = isEmptySubSelect;
+        this.subQuery = new ReportQuery();
     }
 
     public SubSelectExpression(ReportQuery query, Expression baseExpression) {
         super(baseExpression);
+        this.isEmptySubSelect = false;
         this.subQuery = query;
     }
 
@@ -79,41 +92,63 @@ public class SubSelectExpression extends BaseExpression {
     }
 
     public ReportQuery getSubQuery() {
-        initializeCountSubQuery();
+        initializeSubQuery();
         return subQuery;
     }
 
     /**
      * INTERNAL:
-     * This method creates a report query that counts the number of values in baseExpression.anyOf(attribute)
+     * This method creates a report query.
      *
      * For most queries, a ReportQuery will be created that does a simple count using an anonymous query.  In the case of
      * a DirectCollectionMapping, the ReportQuery will use the baseExpression to create a join to the table
      * containing the Direct fields and count based on that join.
      */
-    protected void initializeCountSubQuery(){
-        if (criteriaBase != null && (subQuery.getItems() == null || subQuery.getItems().isEmpty())){
-            if (baseExpression.getSession() != null && ((ObjectExpression)baseExpression).getDescriptor() != null){
-                Class<?> sourceClass = ((ObjectExpression)baseExpression).getDescriptor().getJavaClass();
-                ClassDescriptor descriptor = baseExpression.getSession().getDescriptor(sourceClass);
-                if (descriptor != null){
-                    DatabaseMapping mapping = descriptor.getMappingForAttributeName(attribute);
-                    if (mapping != null && mapping.isDirectCollectionMapping()){
-                        subQuery.setExpressionBuilder(baseExpression.getBuilder());
-                        subQuery.setReferenceClass(sourceClass);
-                        subQuery.addCount(attribute, subQuery.getExpressionBuilder().anyOf(attribute), returnType);
-                        return;
+    protected void initializeSubQuery() {
+        if (criteriaBase != null) {
+            // report query that counts the number of values in baseExpression.anyOf(attribute)
+            if ((subQuery.getItems() == null || subQuery.getItems().isEmpty())) {
+                if (baseExpression.getSession() != null && ((ObjectExpression) baseExpression).getDescriptor() != null) {
+                    Class<?> sourceClass = ((ObjectExpression) baseExpression).getDescriptor().getJavaClass();
+                    ClassDescriptor descriptor = baseExpression.getSession().getDescriptor(sourceClass);
+                    if (descriptor != null) {
+                        DatabaseMapping mapping = descriptor.getMappingForAttributeName(attribute);
+                        if (mapping != null && mapping.isDirectCollectionMapping()) {
+                            subQuery.setExpressionBuilder(baseExpression.getBuilder());
+                            subQuery.setReferenceClass(sourceClass);
+                            subQuery.addCount(attribute, subQuery.getExpressionBuilder().anyOf(attribute), returnType);
+                            return;
+                        }
                     }
                 }
-             }
-            // Use an anonymous subquery that will get its reference class
-            // set during SubSelectExpression.normalize.
-             subQuery.addCount("COUNT", subQuery.getExpressionBuilder(), returnType);
-             if (attribute != null){
-                 subQuery.setSelectionCriteria(subQuery.getExpressionBuilder().equal(criteriaBase.anyOf(attribute)));
-             } else {
-                 subQuery.setSelectionCriteria(subQuery.getExpressionBuilder().equal(criteriaBase));
-             }
+                // Use an anonymous subquery that will get its reference class
+                // set during SubSelectExpression.normalize.
+                subQuery.addCount("COUNT", subQuery.getExpressionBuilder(), returnType);
+                if (attribute != null) {
+                    subQuery.setSelectionCriteria(subQuery.getExpressionBuilder().equal(criteriaBase.anyOf(attribute)));
+                } else {
+                    subQuery.setSelectionCriteria(subQuery.getExpressionBuilder().equal(criteriaBase));
+                }
+            // TODO: Move to @Override method in child class and remove isEmptySubSelect
+            // EXISTS(SubSelectExpression) of IS EMPTY expression
+            } else if (isEmptySubSelect) {
+                if (baseExpression.getSession() != null && ((ObjectExpression) baseExpression).getDescriptor() != null) {
+                    Class<?> sourceClass = ((ObjectExpression) baseExpression).getDescriptor().getJavaClass();
+                    ClassDescriptor descriptor = baseExpression.getSession().getDescriptor(sourceClass);
+                    if (descriptor != null) {
+                        DatabaseMapping mapping = descriptor.getMappingForAttributeName(attribute);
+                        if (mapping != null && mapping.isCollectionMapping()) {
+                            Class<?> subQueryClass = mapping.getReferenceDescriptor().getJavaClass();
+                            subQuery.setExpressionBuilder(subQuery.getExpressionBuilder());
+                            subQuery.setReferenceClass(subQueryClass);
+                            subQuery.setSelectionCriteria(subQuery.getExpressionBuilder().equal(criteriaBase.getBuilder().anyOf(attribute)));
+//                            subQuery.setSelectionCriteria(criteriaBase.getBuilder().anyOf(attribute).equal(subQuery.getExpressionBuilder()));
+                            this.builder = subQuery.getExpressionBuilder();
+//                            subQuery.addItem("exists", new ConstantExpression(1, this ));
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -221,7 +256,7 @@ public class SubSelectExpression extends BaseExpression {
      */
     @Override
     protected void postCopyIn(Map alreadyDone) {
-        initializeCountSubQuery();
+        initializeSubQuery();
         super.postCopyIn(alreadyDone);
         ReportQuery clonedQuery = (ReportQuery)getSubQuery().clone();
         if (!clonedQuery.isCallQuery()) {
@@ -486,4 +521,22 @@ public class SubSelectExpression extends BaseExpression {
         }
         return expression;
     }
+
+//    public static SubSelectExpression createSubSelectExpressionForExists(Expression baseExpression, String attribute) {
+//        SubSelectExpression expression = new SubSelectExpression(true);
+//        expression.setBaseExpression(baseExpression);
+//        expression.attribute = attribute;
+//        expression.criteriaBase = baseExpression;
+//        expression.subQuery.addItem("exists", new ConstantExpression(1, expression ));
+//        return expression;
+//    }
+
+    public static SubSelectExpression createSubSelectExpressionForExists2(Expression baseExpression, String attribute) {
+        SubSelectExpression expression = new SubSelectExpression(baseExpression, true);
+        expression.criteriaBase = baseExpression;
+        expression.attribute = attribute;
+        expression.subQuery.addItem("exists", new ConstantExpression(1, expression ));
+        return expression;
+    }
+
 }

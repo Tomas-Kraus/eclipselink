@@ -681,7 +681,7 @@ final class ExpressionBuilderVisitor implements EclipseLinkExpressionVisitor {
         Expression entityExpression = queryExpression;
 
         if (expression.hasNot()) {
-
+////
             CollectionValuedPathExpression pathExpression = (CollectionValuedPathExpression) expression.getCollectionValuedPathExpression();
 
             // Retrieve the ExpressionBuilder from the collection-valued path expression's
@@ -915,7 +915,34 @@ final class ExpressionBuilderVisitor implements EclipseLinkExpressionVisitor {
             queryExpression = queryExpression.notEmpty(name);
         }
         else {
-            queryExpression = queryExpression.isEmpty(name);
+            // <--
+            // Retrieve the ExpressionBuilder from the collection-valued path expression's
+            // identification variable and the variable name
+//            CollectionValuedPathExpression pathExpression = expression.getExpression().
+//                    //(CollectionValuedPathExpression) expression.getCollectionValuedPathExpression();
+//            pathExpression.getIdentificationVariable().accept(this);
+//            Expression parentExpression = queryExpression;
+//
+//            // Now create the actual expression
+            Expression newBuilder = new ExpressionBuilder();
+            Expression collectionBase = newBuilder;
+            for (int i = 0; i < collectionPath.pathSize(); i++) {
+                // nested paths must be single valued.
+                collectionBase = collectionBase.get(collectionPath.getPath(i));
+            }
+            String lastPath = collectionPath.getPath(collectionPath.pathSize() - 1);
+//            // The following code is copied from Expression.noneOf and altered a bit
+            //Expression criteria = newBuilder.equal(parentExpression).and(collectionBase.anyOf(lastPath).equal(entityExpression));
+            //DatabaseMapping mapping = descriptor.getMappingForAttributeName(name);
+            ReportQuery subQuery = new ReportQuery();
+            subQuery.addItem("exists", new ConstantExpression(1, queryExpression));
+//            subQuery.setShouldRetrieveFirstPrimaryKey(true);
+//            subQuery.setSelectionCriteria(criteria);
+//            // subQuery has the same reference class as parentExpression (which is an ExpressionBuilder).
+//            subQuery.setReferenceClass(((ExpressionBuilder)parentExpression).getQueryClass());
+
+
+            queryExpression = queryExpression.isEmpty(name, expression);
         }
 
         // Set the expression type
