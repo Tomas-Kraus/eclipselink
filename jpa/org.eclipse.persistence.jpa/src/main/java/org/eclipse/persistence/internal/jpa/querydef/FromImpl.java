@@ -50,6 +50,7 @@ import jakarta.persistence.metamodel.Type.PersistenceType;
 
 import org.eclipse.persistence.internal.expressions.ObjectExpression;
 import org.eclipse.persistence.internal.helper.ClassConstants;
+import org.eclipse.persistence.internal.jpa.metamodel.ManagedTypeImpl;
 import org.eclipse.persistence.internal.localization.ExceptionLocalization;
 
 /**
@@ -528,25 +529,62 @@ public class FromImpl<Z, X>  extends PathImpl<X> implements jakarta.persistence.
     // TODO-API-3.2
     @Override
     public <Y> Join<X, Y> join(Class<Y> entityClass) {
-        throw new UnsupportedOperationException("Jakarta Persistence 3.2 API was not implemented yet");
+        return join(entityClass, JoinType.INNER);
     }
 
     // TODO-API-3.2
     @Override
     public <Y> Join<X, Y> join(Class<Y> entityClass, JoinType joinType) {
-        throw new UnsupportedOperationException("Jakarta Persistence 3.2 API was not implemented yet");
+        SingularAttribute<? super X, ?> key = null;
+        // Search target class attributes for SingularAttribute matching source class
+        for (Attribute<? super X, ?> attribute : ((ManagedType<X>)managedType).getAttributes()) {
+            if (attribute instanceof SingularAttribute
+                    && ((SingularAttribute<? super X, ?>)attribute).getBindableJavaType().isAssignableFrom(entityClass)) {
+                if (key == null) {
+                    key = (SingularAttribute<? super X, ?>)attribute;
+                // Multiple matching attributes found, can't select the proper one
+                } else {
+                    throw new IllegalStateException(
+                            ExceptionLocalization.buildMessage("multiple_keys_in_entity",
+                                                               new String[] {
+                                                                       entityClass.getName(),
+                                                                       this.managedType.getJavaType().getName()}));
+                }
+            }
+        }
+        if (key == null) {
+            throw new IllegalStateException(
+                    ExceptionLocalization.buildMessage("no_key_in_entity",
+                                                       new String[] {
+                                                               entityClass.getName(),
+                                                               this.managedType.getJavaType().getName()}));
+        }
+        ObjectExpression exp = ((ObjectExpression)this.currentNode).newDerivedExpressionNamed(key.getName());
+        switch(joinType) {
+            case LEFT:
+                exp.doUseOuterJoin();
+                break;
+            case RIGHT:
+                throw new UnsupportedOperationException(ExceptionLocalization.buildMessage("RIGHT_JOIN_NOT_SUPPORTED"));
+            case INNER:
+                exp.doNotUseOuterJoin();
+        }
+        JoinImpl<X, Y> join = new JoinImpl<>(this, managedType, this.metamodel, entityClass, exp, key, joinType);
+        this.joins.add(join);
+        join.isJoin = true;
+        return join;
     }
 
     // TODO-API-3.2
     @Override
     public <Y> Join<X, Y> join(EntityType<Y> entity) {
-        throw new UnsupportedOperationException("Jakarta Persistence 3.2 API was not implemented yet");
+        return join(entity, JoinType.INNER);
     }
 
     // TODO-API-3.2
     @Override
     public <Y> Join<X, Y> join(EntityType<Y> entity, JoinType joinType) {
-        throw new UnsupportedOperationException("Jakarta Persistence 3.2 API was not implemented yet");
+        return join(entity.getJavaType(), joinType);
     }
 
     @Override
