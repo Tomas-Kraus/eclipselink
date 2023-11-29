@@ -17,7 +17,9 @@
 //       - 389090: JPA 2.1 DDL Generation Support
 package org.eclipse.persistence.tools.schemaframework;
 
+import jakarta.persistence.PersistenceException;
 import org.eclipse.persistence.exceptions.DatabaseException;
+import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.internal.sessions.AbstractRecord;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
@@ -28,13 +30,18 @@ import org.eclipse.persistence.sequencing.TableSequence;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.eclipse.persistence.sessions.Session;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * <b>Purpose</b>: This class is responsible for creating the tables defined in the project.
@@ -351,6 +358,30 @@ public class TableCreator {
         replaceTablesAndConstraints(schemaManager, session, createSequenceTables, createSequences);
     }
 
+    void truncateTables(DatabaseSession session, SchemaManager schemaManager, boolean generateFKConstraints) {
+        TableCreator tableCreator = schemaManager.getDefaultTableCreator(generateFKConstraints);
+        String sequenceTableName = tableCreator.getSequenceTableName(session);
+        List<TableDefinition> tables = tableCreator.getTableDefinitions();
+        dropConstraints(session, schemaManager, false);
+        for (TableDefinition table : tables) {
+            if (!table.getName().equals(sequenceTableName)) {
+                try {
+                    Writer stmtWriter = new StringWriter();
+                    session.getPlatform().writeTruncateTable(stmtWriter, ((AbstractSession) session), table);
+                    ((AbstractSession) session)
+                            .priviledgedExecuteNonSelectingCall(
+                                    new org.eclipse.persistence.queries.SQLCall(stmtWriter.toString()));
+                } catch (DatabaseException ex) {
+                    //Ignore database exception. eg. If there is no table to delete, it gives database exception.
+                    throw ex;
+                } catch (IOException ex) {
+                    throw new PersistenceException(ex);
+                }
+            }
+        }
+        createConstraints(tables, session, schemaManager, false);
+    }
+
     protected void replaceTablesAndConstraints(SchemaManager schemaManager, DatabaseSession session, boolean createSequenceTables, boolean createSequences) {
         buildConstraints(schemaManager, true);
         boolean ignore = shouldIgnoreDatabaseException();
@@ -443,6 +474,137 @@ public class TableCreator {
     }
 
     /**
+     * Validate tables in the database.
+     * Found issues are passed as {@link List} of {@link TableValidationException} to provided consumer
+     * when validation failed.
+     *
+     * @param session Active database session.
+     * @param schemaManager Database schema manipulation manager.
+     * @param onFailed {@link Consumer} to accept {@link List} of {@link TableValidationException}
+     *                 containing validation failures. Consumer is called <b>only</b> when validation failed.
+     * @return Value of {@code true} when validation passed or {@code false} otherwise.
+     */
+    public boolean validateTables(final DatabaseSession session,
+                                  final SchemaManager schemaManager,
+                                  Consumer<List<TableValidationException>> onFailed) {
+        //final String sequenceTableName = getSequenceTableName(session);
+        List<TableDefinition> tableDefinitions = getTableDefinitions();
+        List<TableValidationException> exceptions = new ArrayList<>(tableDefinitions.size());
+        tableDefinitions.forEach(tableDefinition -> {
+            String tableName = tableDefinition.getTable() == null
+                    ? tableDefinition.getName()
+                    : tableDefinition.getTable().getName();
+            if (schemaManager.checkTableExists(tableDefinition)) {
+                List<AbstractRecord> columnsInfo = readColumnInfo((AbstractSession) session, tableDefinition);
+                if (columnsInfo != null && !columnsInfo.isEmpty()) {
+                    final Map<DatabaseField, AbstractRecord> columns = parseColumnInfo((AbstractSession) session,
+                                                                                       tableDefinition,
+                                                                                       columnsInfo);
+                    // Build list of missing columns
+                    CheckDatabaseColumns check = new CheckDatabaseColumns(session, columns.size());
+                    processColumnns(tableDefinition,
+                                           columns,
+                                           check::checkExisting,
+                                           check::addMissing,
+                                           check::surplusColumns);
+                    // Missing columns
+                    if (!check.getMissingColumns().isEmpty()) {
+                        exceptions.add(
+                                new TableValidationException.MissingColumns(tableName, check.getMissingColumns()));
+                    }
+                    // Surplus columns
+                    if (!check.getSurplusFields().isEmpty()) {
+                        exceptions.add(
+                                new TableValidationException.SurplusColumns(
+                                        tableName,
+                                        check.getSurplusFields().stream().map(DatabaseField::getName).toList()));
+                    }
+                    if (!check.getExistingColumnsDiff().isEmpty()) {
+                        exceptions.add(
+                                new TableValidationException.DifferentColumns(tableName, check.getExistingColumnsDiff()));
+                    }
+                }
+            } else {
+                exceptions.add(new TableValidationException.MissingTable(tableName));
+            }
+        });
+        if (exceptions.isEmpty()) {
+            return true;
+        } else {
+            // Pass validation failures to provided consumer
+            onFailed.accept(exceptions);
+            return false;
+        }
+    }
+
+    private static final class CheckDatabaseColumns {
+
+        final DatabaseSession session;
+        final List<String> missingColumns;
+        final List<TableValidationException.DifferentColumns.Difference> existingColumnsDiff;
+        Set<DatabaseField> surplusFields;
+
+        private CheckDatabaseColumns(DatabaseSession session, int size) {
+            this.session = session;
+            this.missingColumns = new ArrayList<>(size);
+            this.existingColumnsDiff = new LinkedList<>();
+            this.surplusFields = null;
+        }
+
+        // Database columns check callback for missing column (existing in TableDefinition but not in database)
+        private void addMissing(FieldDefinition fieldDefinition, DatabaseField databaseField) {
+            missingColumns.add(databaseField.getName());
+        }
+
+        // Database columns check callback for column existing in both TableDefinition and the database
+        private void checkExisting(FieldDefinition fieldDefinition, DatabaseField databaseField, AbstractRecord dbRecord) {
+            FieldTypeDefinition expectedDbType = DatabaseObjectDefinition.getFieldTypeDefinition(session.getPlatform(),
+                                                                                                 fieldDefinition.getType(),
+                                                                                                 fieldDefinition.getTypeName());
+            String typeName = (String) dbRecord.get("TYPE_NAME");
+            if (typeName != null) {
+                // Type mismatch
+                if (!typeName.equals(expectedDbType.getName())) {
+                    existingColumnsDiff.add(
+                            new TableValidationException.DifferentColumns.TypeDifference(databaseField.getName(),
+                                                                                         expectedDbType.getName(),
+                                                                                         typeName));
+                }
+            }
+        }
+
+        // Database columns check callback for set of surplus fields (existing in database but not in TableDefinition)
+        private void surplusColumns(Set<DatabaseField> databaseFields) {
+            this.surplusFields = databaseFields;
+        }
+
+        private Set<DatabaseField> getSurplusFields() {
+            return surplusFields;
+        }
+
+        private List<String> getMissingColumns() {
+            return missingColumns;
+        }
+
+        private List<TableValidationException.DifferentColumns.Difference> getExistingColumnsDiff() {
+            return existingColumnsDiff;
+        }
+
+        private interface ExistingField {
+            void accept(FieldDefinition fieldDefinition, DatabaseField databaseField, AbstractRecord dbRecord);
+        }
+
+        private interface MissingField {
+            void accept(FieldDefinition fieldDefinition, DatabaseField databaseField);
+        }
+
+        private interface SurplusFields {
+            void accept(Set<DatabaseField> surplusFields);
+        }
+
+    }
+
+    /**
      * This creates/extends the tables on the database.
      * @param session Active database session.
      * @param schemaManager Database schema manipulation manager.
@@ -475,72 +637,25 @@ public class TableCreator {
                 if (alreadyExists) {
                     //Assume the table exists, so lookup the column info
 
-                    //While SQL is case insensitive, getColumnInfo is and will not return the table info unless the name is passed in
+                    //While SQL is case-insensitive, getColumnInfo is and will not return the table info unless the name is passed in
                     //as it is stored internally.
-                    String tableName = table.getTable()==null? table.getName(): table.getTable().getName();
-                    final boolean usesDelimiting = (table.getTable()!=null && table.getTable().shouldUseDelimiters());
-                    List<AbstractRecord> columnInfo = null;
 
-                    columnInfo = abstractSession.getAccessor().getColumnInfo(tableName, null, abstractSession);
+                    List<AbstractRecord> columnInfo = readColumnInfo(abstractSession, table);
 
-                    if (!usesDelimiting && (columnInfo == null || columnInfo.isEmpty()) ) {
-                        tableName = tableName.toUpperCase();
-                        columnInfo = abstractSession.getAccessor().getColumnInfo(tableName, null, abstractSession);
-                        if (( columnInfo == null || columnInfo.isEmpty()) ){
-                            tableName = tableName.toLowerCase();
-                            columnInfo = abstractSession.getAccessor().getColumnInfo(tableName, null, abstractSession);
-                        }
-                    }
                     if (columnInfo != null && !columnInfo.isEmpty()) {
-                        //Table exists, add individual fields as necessary
-
-                        //hash the table's existing columns by name
-                        final Map<DatabaseField, AbstractRecord> columns = new HashMap<>(columnInfo.size());
-                        final DatabaseField columnNameLookupField = new DatabaseField("COLUMN_NAME");
-                        final DatabaseField schemaLookupField = new DatabaseField("TABLE_SCHEM");
-                        boolean schemaMatchFound = false;
-                        // Determine the probably schema for the table, this is a heuristic, so should not cause issues if wrong.
-                        String qualifier = table.getQualifier();
-                        if ((qualifier == null) || (qualifier.length() == 0)) {
-                            qualifier = session.getDatasourcePlatform().getTableQualifier();
-                            if ((qualifier == null) || (qualifier.length() == 0)) {
-                                qualifier = session.getLogin().getUserName();
-                                // Oracle DB DS defined in WLS does not contain user name so it's stored in platform.
-                                if ((qualifier == null) || (qualifier.length() == 0)) {
-                                    final DatabasePlatform platform = session.getPlatform();
-                                    if (platform.supportsConnectionUserName()) {
-                                        qualifier = platform.getConnectionUserName();
-                                    }
+                        // Table exists, parse read columns
+                        final Map<DatabaseField, AbstractRecord> columns = parseColumnInfo(abstractSession, table, columnInfo);
+                        // Add missing fields to the database
+                        processMissingColumnns(table, columns, (fieldDef, dbField) -> {
+                            try {
+                                table.addFieldOnDatabase(abstractSession, fieldDef);
+                            } catch (final DatabaseException addFieldEx) {
+                                session.getSessionLog().log(SessionLog.FINEST,  SessionLog.DDL, "cannot_add_field_to_table", dbField.getName(), table.getFullName(), addFieldEx.getMessage());
+                                if (!shouldIgnoreDatabaseException()) {
+                                    throw addFieldEx;
                                 }
                             }
-                        }
-                        final boolean checkSchema = (qualifier != null) && (qualifier.length() > 0);
-                        for (final AbstractRecord record : columnInfo) {
-                            final String fieldName = (String)record.get(columnNameLookupField);
-                            if (fieldName != null && fieldName.length() > 0) {
-                                final DatabaseField column = new DatabaseField(fieldName);
-                                if (session.getPlatform().shouldForceFieldNamesToUpperCase()) {
-                                    column.useUpperCaseForComparisons(true);
-                                }
-                                final String schema = (String)record.get(schemaLookupField);
-                                // Check the schema as well.  Ignore columns for other schema if a schema match is found.
-                                if (schemaMatchFound) {
-                                    if (qualifier.equalsIgnoreCase(schema)) {
-                                        columns.put(column,  record);
-                                    }
-                                } else {
-                                    if (checkSchema) {
-                                        if (qualifier.equalsIgnoreCase(schema)) {
-                                            schemaMatchFound = true;
-                                            // Remove unmatched columns from other schemas.
-                                            columns.clear();
-                                        }
-                                    }
-                                    // If none of the schemas match what is expected, assume what is expected is wrong, and use all columns.
-                                    columns.put(column,  record);
-                                }
-                            }
-                        }
+                        });
 
                         //Go through each field we need to have in the table to see if it already exists
                         for (final FieldDefinition fieldDef : table.getFields()){
@@ -575,4 +690,121 @@ public class TableCreator {
         session.getDatasourcePlatform().initIdentitySequences(session, DEFAULT_IDENTITY_GENERATOR);
 
     }
+
+    // Reads column information from the database.
+    private List<AbstractRecord> readColumnInfo(AbstractSession session, TableDefinition table) {
+        String tableName = table.getTable() == null ? table.getName() : table.getTable().getName();
+        boolean notUsesDelimiting = table.getTable() == null || !table.getTable().shouldUseDelimiters();
+
+        List<AbstractRecord> columnInfo = session.getAccessor().getColumnInfo(tableName, null, session);
+        if (notUsesDelimiting && (columnInfo == null || columnInfo.isEmpty()) ) {
+            tableName = tableName.toUpperCase();
+            columnInfo = session.getAccessor().getColumnInfo(tableName, null, session);
+            if (( columnInfo == null || columnInfo.isEmpty()) ){
+                tableName = tableName.toLowerCase();
+                columnInfo = session.getAccessor().getColumnInfo(tableName, null, session);
+            }
+        }
+        return columnInfo;
+    }
+
+    // Parse column information read from the database.
+    private static Map<DatabaseField, AbstractRecord> parseColumnInfo(AbstractSession session,
+                                                                      TableDefinition table,
+                                                                      List<AbstractRecord> columnInfo) {
+        // Hash the table's existing columns by name
+        final Map<DatabaseField, AbstractRecord> columns = new HashMap<>(columnInfo.size());
+        final DatabaseField columnNameLookupField = new DatabaseField("COLUMN_NAME");
+        final DatabaseField schemaLookupField = new DatabaseField("TABLE_SCHEM");
+        boolean schemaMatchFound = false;
+        // Determine the probable schema for the table, this is a heuristic, so should not cause issues if wrong.
+        String qualifier = table.getQualifier();
+        if ((qualifier == null) || (qualifier.length() == 0)) {
+            qualifier = session.getDatasourcePlatform().getTableQualifier();
+            if ((qualifier == null) || (qualifier.length() == 0)) {
+                qualifier = session.getLogin().getUserName();
+                // Oracle DB DS defined in WLS does not contain username, so it's stored in platform.
+                if ((qualifier == null) || (qualifier.length() == 0)) {
+                    final DatabasePlatform platform = session.getPlatform();
+                    if (platform.supportsConnectionUserName()) {
+                        qualifier = platform.getConnectionUserName();
+                    }
+                }
+            }
+        }
+        final boolean checkSchema = (qualifier != null) && (qualifier.length() > 0);
+        for (final AbstractRecord record : columnInfo) {
+            final String fieldName = (String)record.get(columnNameLookupField);
+            if (fieldName != null && fieldName.length() > 0) {
+                final DatabaseField column = new DatabaseField(fieldName);
+                if (session.getPlatform().shouldForceFieldNamesToUpperCase()) {
+                    column.useUpperCaseForComparisons(true);
+                }
+                final String schema = (String)record.get(schemaLookupField);
+                // Check the schema as well.  Ignore columns for other schema if a schema match is found.
+                if (schemaMatchFound) {
+                    if (qualifier.equalsIgnoreCase(schema)) {
+                        columns.put(column,  record);
+                    }
+                } else {
+                    if (checkSchema) {
+                        if (qualifier.equalsIgnoreCase(schema)) {
+                            schemaMatchFound = true;
+                            // Remove unmatched columns from other schemas.
+                            columns.clear();
+                        }
+                    }
+                    // If none of the schemas match what is expected, assume what is expected is wrong, and use all columns.
+                    columns.put(column,  record);
+                }
+            }
+        }
+        return columns;
+    }
+
+    // Run provided action for each column missing in the database.
+    private static void processMissingColumnns(TableDefinition table,
+                                               Map<DatabaseField, AbstractRecord> columns,
+                                               CheckDatabaseColumns.MissingField missingAction) {
+        processColumnns(table, columns, null, missingAction, null);
+    }
+
+    // Run provided action for each column missing in the database.
+    // Optionally provide set of database columns not present in the TableDefinition.
+    private static void processColumnns(TableDefinition table,
+                                        Map<DatabaseField, AbstractRecord> columns,
+                                        CheckDatabaseColumns.ExistingField existingAction,
+                                        CheckDatabaseColumns.MissingField missingAction,
+                                        CheckDatabaseColumns.SurplusFields surplusAction) {
+        // Surplus database fields if consumer was provided
+        boolean isSurplusAction = surplusAction != null;
+        Set<DatabaseField> surplusSet = isSurplusAction ? new HashSet<>(columns.keySet()) : null;
+        // Process all fields from TableDefinition
+        for (final FieldDefinition fieldDef : table.getFields()) {
+            DatabaseField dbField = fieldDef.getDatabaseField();
+            if (dbField == null) {
+                dbField = new DatabaseField(fieldDef.getName());
+            }
+            // Run action for missing column
+            AbstractRecord dbColumn = columns.get(dbField);
+            if (dbColumn == null && missingAction != null) {
+                missingAction.accept(fieldDef, dbField);
+            // Handle existing column
+            } else {
+                // Run action for existing column
+                if (existingAction != null) {
+                    existingAction.accept(fieldDef, dbField, dbColumn);
+                }
+                // Update surplus columns set
+                if (isSurplusAction) {
+                    surplusSet.remove(dbField);
+                }
+            }
+        }
+        // Supply set of database columns not present in the TableDefinition when requested
+        if (isSurplusAction) {
+            surplusAction.accept(surplusSet);
+        }
+    }
+
 }

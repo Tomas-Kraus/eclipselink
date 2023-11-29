@@ -159,6 +159,9 @@ public class EntityManagerFactoryDelegate implements EntityManagerFactory, Persi
     /** Pointer to the EntityManagerFactoryImpl that created me */
     protected JpaEntityManagerFactory owner = null;
 
+    /** Persistence unit schema manager. */
+    private SchemaManagerImpl schemaManager = null;
+
     /**
      * Will return an instance of the Factory. Should only be called by
      * EclipseLink.
@@ -564,10 +567,12 @@ public class EntityManagerFactoryDelegate implements EntityManagerFactory, Persi
         };
     }
 
-    // TODO-API-3.2
     @Override
     public SchemaManager getSchemaManager() {
-        throw new UnsupportedOperationException("Jakarta Persistence 3.2 API was not implemented yet");
+        if (schemaManager == null) {
+            schemaManager = new SchemaManagerImpl(getDatabaseSession());
+        }
+        return schemaManager;
     }
 
     /**

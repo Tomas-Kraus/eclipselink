@@ -110,20 +110,41 @@ public class FieldDefinition implements Serializable, Cloneable {
         this.name = name;
         this.typeName = typeName;
     }
-
     /**
      * INTERNAL:
      * Append the database field definition string to the table creation statement.
+     *
      * @param writer  Target writer where to write field definition string.
      * @param session Current session context.
      * @param table   Database table being processed.
      * @throws ValidationException When invalid or inconsistent data were found.
      */
     public void appendDBString(final Writer writer, final AbstractSession session,
-            final TableDefinition table) throws ValidationException {
+                               final TableDefinition table) {
+        appendDBString(writer, session, table, null);
+    }
+
+    /**
+     * INTERNAL:
+     * Append the database field definition string to the table creation/modification statement.
+     *
+     * @param writer  Target writer where to write field definition string.
+     * @param session Current session context.
+     * @param table   Database table being processed.
+     * @param alterSeparator Field definition is part of ALTER/MODIFY COUMN statement when not {@code null}
+     *                and {@code alterSeparator} is appended after column name
+     * @throws ValidationException When invalid or inconsistent data were found.
+     */
+    public void appendDBString(final Writer writer, final AbstractSession session,
+            final TableDefinition table, String alterSeparator) throws ValidationException {
         try {
-            writer.write(name);
-            writer.write(" ");
+                writer.write(name);
+                writer.write(" ");
+
+            if (alterSeparator != null) {
+                writer.write(alterSeparator);
+                writer.write(" ");
+            }
 
             if (getTypeDefinition() != null) { //apply user-defined complete type definition
                 writer.write(typeDefinition);

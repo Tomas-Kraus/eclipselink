@@ -265,7 +265,11 @@ public class ExceptionLocalizationResource extends ListResourceBundle {
                                            { "json_pgsql_pgobject_conversion", "Database PGobject conversion failed."},
                                            { "json_pgsql_unknown_type", "Unknown JSON type returned from database."},
                                            { "json_ora21c_jsonvalue_to_oraclevalue", "Could not convert JsonValue to OracleJsonValue."},
-                                           { "json_ora21c_resultset_to_jsonvalue", "Could not convert JDBC ResultSet type to JsonValue."}
+                                           { "json_ora21c_resultset_to_jsonvalue", "Could not convert JDBC ResultSet type to JsonValue."},
+                                           { "schema_validation_failed", "Schema validation failed"},
+                                           { "schema_validation_missing_table", "The {0} table vas not found in the schema"},
+                                           { "schema_validation_table_surplus_columns", "The {0} table has surplus columns in the schema"},
+                                           { "schema_validation_table_missing_columns", "The {0} table has missing columns in the schema"}
                                         };
     /**
      * Return the lookup table.

@@ -39,8 +39,10 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.function.Consumer;
 
 /**
  * <p>
@@ -1124,6 +1126,25 @@ public class SchemaManager {
             this.session.getDatabaseEventListener().remove(this.session);
             this.session.getDatabaseEventListener().register(this.session);
         }
+    }
+
+    public void truncateDefaultTables(boolean generateFKConstraints) {
+        boolean shouldLogExceptionStackTrace = getSession().getSessionLog().shouldLogExceptionStackTrace();
+        session.getSessionLog().setShouldLogExceptionStackTrace(false);
+
+        try {
+            TableCreator tableCreator = getDefaultTableCreator(generateFKConstraints);
+            tableCreator.truncateTables(session, this, generateFKConstraints);
+        } catch (DatabaseException exception) {
+            // Ignore error
+        } finally {
+            session.getSessionLog().setShouldLogExceptionStackTrace(shouldLogExceptionStackTrace);
+        }
+    }
+
+    public boolean validateDefaultTables(Consumer<List<TableValidationException>> onFailed, boolean generateFKConstraints) {
+        TableCreator tableCreator = getDefaultTableCreator(generateFKConstraints);
+        return tableCreator.validateTables(session, this, onFailed);
     }
 
     public void setSession(DatabaseSessionImpl session) {

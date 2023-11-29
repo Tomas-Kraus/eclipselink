@@ -146,6 +146,30 @@ public class TableDefinition extends DatabaseObjectDefinition {
     }
 
     /**
+     * INTERNAL:
+     * Execute the SQL alter table to drop the field from the table.
+     */
+    public void dropFieldOnDatabase(final AbstractSession session, String fieldName) {
+        session.priviledgedExecuteNonSelectingCall(
+                new SQLCall(buildDropFieldWriter(session, fieldName, new StringWriter()).toString()));
+    }
+
+    /**
+     * INTERNAL:
+     * Return the alter table statement to drop the field from the table.
+     */
+    public Writer buildDropFieldWriter(AbstractSession session, String fieldName, Writer writer) throws ValidationException {
+        try {
+            writer.write("ALTER TABLE " + getFullName() + " ");
+            session.getPlatform().writeDropColumnClause(writer, session, this, fieldName);
+            writer.write(" ");
+        } catch (IOException ioException) {
+            throw ValidationException.fileError(ioException);
+        }
+        return writer;
+    }
+
+    /**
      * PUBLIC:
      * Add a foreign key constraint to the table.
      * If there is a same name foreign key constraint already, nothing will happen.
