@@ -604,7 +604,6 @@ public class EntityManagerFactoryImpl implements EntityManagerFactory, Persisten
         return delegate.getTransactionType();
     }
 
-    // TODO-API-3.2
     @Override
     public SchemaManager getSchemaManager() {
         return delegate.getSchemaManager();
