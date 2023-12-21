@@ -278,7 +278,8 @@ public class ExceptionLocalizationResource extends ListResourceBundle {
                                            { "schema_validation_table_different_columns", "The {0} table has different columns in the schema"},
                                            { "find_option_class_unknown", "The FindOption implementing class {0} is not supported"},
                                            { "refresh_option_class_unknown", "The RefreshOption implementing class {0} is not supported"},
-                                           { "lock_option_class_unknown", "The LockOption implementing class {0} is not supported"}
+                                           { "lock_option_class_unknown", "The LockOption implementing class {0} is not supported"},
+                                           { "typed_query_reference_is_null", "Reference to a named query is null"}
                                         };
     /**
      * Return the lookup table.
