@@ -226,6 +226,8 @@ public class ReportQueryResult implements Serializable, Map {
         DatabaseMapping mapping = item.getMapping();
         ClassDescriptor descriptor = item.getDescriptor();
 
+        // Here we may map row content to IdClass if exists in mapping, but 1st ReportItem must contain JPQL ID flag
+
         if (item.getAttributeExpression() != null) {
             if (descriptor == null && mapping != null) {
                 descriptor = mapping.getReferenceDescriptor();

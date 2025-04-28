@@ -14,6 +14,7 @@
 //     Oracle - initial API and implementation from Oracle TopLink
 package org.eclipse.persistence.queries;
 
+import org.eclipse.persistence.descriptors.CMPPolicy;
 import org.eclipse.persistence.descriptors.VersionLockingPolicy;
 import org.eclipse.persistence.exceptions.DatabaseException;
 import org.eclipse.persistence.exceptions.QueryException;
@@ -115,6 +116,10 @@ public class ReportQuery extends ReadAllQuery {
     /** flag to allow items to be added to the last ConstructorReportItem **/
     protected boolean addToConstructorItem;
 
+    // Dead end: returnIdClass is not needed
+    /** Flag to return primary key as IdClass. */
+    private boolean returnIdClass;
+
     /* GF_ISSUE_395 this attribute stores a set of unique keys that identity results.
      * Used when distinct has been set on the query.  For use in TCK
      */
@@ -129,6 +134,7 @@ public class ReportQuery extends ReadAllQuery {
         this.items = new ArrayList<>();
         this.shouldRetrievePrimaryKeys = NO_PRIMARY_KEY;
         this.addToConstructorItem = false;
+        this.returnIdClass = false;
 
         // overwrite the lock mode to NO_LOCK, this prevents the report query to lock
         // when DEFAULT_LOCK_MODE and a pessimistic locking policy are used.
@@ -661,10 +667,21 @@ public class ReportQuery extends ReadAllQuery {
         } else if (shouldReturnArray()) {
             return reportQueryResult.toArray();
         } else if (shouldReturnWithoutReportQueryResult()) {
-            if (reportQueryResult.size() == 1) {
-                return reportQueryResult.getResults().get(0);
+            // Dead end: this does not work except one specific case
+            if (returnIdClass && getDescriptor().getCMPPolicy().getPKClass() != null) {
+                int[] elementIndex = new int[reportQueryResult.getResults().size()];
+                Object[] elements = new Object[reportQueryResult.getResults().size()];
+                for (int i = 0; i < reportQueryResult.getResults().size(); i++) {
+                    elementIndex[i] = i;
+                    elements[i] = reportQueryResult.getResults().get(i);
+                }
+                return getDescriptor().getCMPPolicy().createPrimaryKeyInstanceFromPrimaryKeyValues(session, elementIndex, elements);
             } else {
-                return reportQueryResult.toArray();
+                if (reportQueryResult.size() == 1) {
+                    return reportQueryResult.getResults().get(0);
+                } else {
+                    return reportQueryResult.toArray();
+                }
             }
         } else if (shouldReturnSingleValue()) {
             return reportQueryResult.getResults().get(0);
@@ -1354,6 +1371,11 @@ public class ReportQuery extends ReadAllQuery {
         setShouldRetrievePrimaryKeys(true);
         //Bug2804042 Must un-prepare if prepared as the SQL may change.
         setIsPrepared(false);
+    }
+
+    // Dead end: returnIdClass is not needed
+    public void returnIdClass() {
+        this.returnIdClass = true;
     }
 
     /**

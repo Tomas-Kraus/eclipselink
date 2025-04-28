@@ -66,7 +66,10 @@ public abstract class JPQLFunctionsAbstractBuilder extends EclipseLinkAnonymousE
         List<DatabaseField> primaryKeyFields = descriptor.getPrimaryKeyFields();
         for (DatabaseField primaryKeyField : primaryKeyFields) {
             String idAttributeName = getIdAttributeNameByField(descriptor.getMappings(), primaryKeyField);
-            StateFieldPathExpression stateFieldPathExpression = new StateFieldPathExpression(expression.getParent(), variableText + "." + idAttributeName);
+            // Here StateFieldPathExpression is marked as being expanded from JPQL ID
+            StateFieldPathExpression stateFieldPathExpression = new StateFieldPathExpression(expression.getParent(),
+                                                                                             variableText + "." + idAttributeName,
+                                                                                             true);
             expression.addStateFieldPathExpression(stateFieldPathExpression);
         }
         //Continue with created StateFieldPathExpression

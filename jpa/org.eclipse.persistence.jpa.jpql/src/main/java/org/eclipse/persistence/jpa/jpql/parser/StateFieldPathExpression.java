@@ -61,6 +61,17 @@ public final class StateFieldPathExpression extends AbstractPathExpression {
      * Creates a new <code>StateFieldPathExpression</code>.
      *
      * @param parent The parent of this expression
+     * @param paths The path expression that is following the identification variable
+     * @param idExpression Whether created from the JPQL ID function
+     */
+    public StateFieldPathExpression(AbstractExpression parent, String paths, boolean idExpression) {
+        super(parent, paths, idExpression);
+    }
+
+    /**
+     * Creates a new <code>StateFieldPathExpression</code>.
+     *
+     * @param parent The parent of this expression
      * @param expression The identification variable that was already parsed, which means the
      * beginning of the parsing should start with a dot
      * @param paths The path expression that is following the identification variable

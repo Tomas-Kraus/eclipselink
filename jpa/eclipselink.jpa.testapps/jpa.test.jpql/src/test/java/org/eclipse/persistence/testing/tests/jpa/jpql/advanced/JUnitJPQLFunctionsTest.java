@@ -17,6 +17,7 @@ package org.eclipse.persistence.testing.tests.jpa.jpql.advanced;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import jakarta.persistence.TypedQuery;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -27,6 +28,7 @@ import org.eclipse.persistence.testing.models.jpa.advanced.AdvancedTableCreator;
 import org.eclipse.persistence.testing.models.jpa.advanced.Employee;
 import org.eclipse.persistence.testing.models.jpa.advanced.EmployeePopulator;
 import org.eclipse.persistence.testing.models.jpa.advanced.PhoneNumber;
+import org.eclipse.persistence.testing.models.jpa.advanced.PhoneNumberPK;
 import org.eclipse.persistence.testing.models.jpa.advanced.Vegetable;
 import org.eclipse.persistence.testing.models.jpa.advanced.VegetablePK;
 import org.eclipse.persistence.testing.tests.jpa.jpql.JUnitDomainObjectComparer;
@@ -91,6 +93,7 @@ public class JUnitJPQLFunctionsTest extends JUnitTestCase {
         suite.addTest(new JUnitJPQLFunctionsTest("queryID06CompositePKTest"));
         suite.addTest(new JUnitJPQLFunctionsTest("queryID07CompositePKTestWithIdClass"));
         suite.addTest(new JUnitJPQLFunctionsTest("queryID08CompositePKTestWithIdClass"));
+        suite.addTest(new JUnitJPQLFunctionsTest("queryID09CompositePKTestWithIdClass"));
         suite.addTest(new JUnitJPQLFunctionsTest("queryVERSION1Test"));
         suite.addTest(new JUnitJPQLFunctionsTest("queryVERSION2Test"));
         suite.addTest(new JUnitJPQLFunctionsTest("queryVERSION3Test"));
@@ -227,14 +230,28 @@ public class JUnitJPQLFunctionsTest extends JUnitTestCase {
         final PhoneNumber PHONE_EXPECTED = employeePopulator.employeeExample1().getPhoneNumbers().stream().findFirst().get();
 
         EntityManager em = createEntityManager();
-        Query query = em.createQuery("SELECT ID(this) FROM PhoneNumber WHERE this.id = :idParam AND this.type = :typeParam");
+        Query query = em.createQuery("SELECT ID(this), id FROM PhoneNumber WHERE this.id = :idParam AND this.type = :typeParam");
         query.setParameter("idParam", PHONE_EXPECTED.getOwner().getId());
         query.setParameter("typeParam", PHONE_EXPECTED.getType());
-        Object[] result  = (Object[])query.getSingleResult();
+        PhoneNumberPK result  = (PhoneNumberPK) query.getSingleResult();
         assertNotNull(result);
-        //result array order is important too
-        assertEquals(PHONE_EXPECTED.getOwner().getId(), result[0]);
-        assertEquals(PHONE_EXPECTED.getType(), result[1]);
+        assertEquals(PHONE_EXPECTED.getOwner().getId(), result.getId());
+        assertEquals(PHONE_EXPECTED.getType(), result.getType());
+    }
+
+    public void queryID09CompositePKTestWithIdClass(){
+        final PhoneNumber PHONE_EXPECTED = employeePopulator.employeeExample1().getPhoneNumbers().stream().findFirst().get();
+        EntityManager em = createEntityManager();
+        TypedQuery<PhoneNumberPK> query = em.createQuery(
+                "SELECT ID(this) FROM PhoneNumber WHERE this.id = :idParam AND this.type = :typeParam AND this.areaCode = :areaCode",
+                PhoneNumberPK.class);
+        query.setParameter("idParam", PHONE_EXPECTED.getOwner().getId());
+        query.setParameter("typeParam", PHONE_EXPECTED.getType());
+        query.setParameter("areaCode", PHONE_EXPECTED.getAreaCode());
+        PhoneNumberPK result = query.getSingleResult();
+        assertNotNull(result);
+        assertEquals(PHONE_EXPECTED.getOwner().getId(), result.getId());
+        assertEquals(PHONE_EXPECTED.getType(), result.getType());
     }
 
     public void queryVERSION1Test(){

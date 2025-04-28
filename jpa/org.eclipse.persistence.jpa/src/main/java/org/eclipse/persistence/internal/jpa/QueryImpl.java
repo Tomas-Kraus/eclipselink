@@ -260,7 +260,8 @@ public class QueryImpl {
             }
 
             // Execute the query and return the result.
-            return session.executeQuery(query, parameterValues);
+            Object queryResult = session.executeQuery(query, parameterValues);
+            return queryResult;
         } catch (DatabaseException e) {
             throw getDetailedException(e);
         } catch (RuntimeException e) {

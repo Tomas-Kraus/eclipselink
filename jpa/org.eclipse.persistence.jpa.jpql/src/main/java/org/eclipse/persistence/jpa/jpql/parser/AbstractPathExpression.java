@@ -66,6 +66,11 @@ public abstract class AbstractPathExpression extends AbstractExpression {
     private boolean startsWithDot;
 
     /**
+     * Determines whether the path was created from JPQL ID function (Jakarta Persistence 3.2).
+     */
+    private final boolean idExpression;
+
+    /**
      * Creates a new <code>AbstractPathExpression</code>.
      *
      * @param parent The parent of this expression
@@ -78,6 +83,7 @@ public abstract class AbstractPathExpression extends AbstractExpression {
         this.pathSize = -1;
         this.identificationVariable = identificationVariable;
         this.identificationVariable.setParent(this);
+        this.idExpression = false;
     }
 
     /**
@@ -97,6 +103,7 @@ public abstract class AbstractPathExpression extends AbstractExpression {
         this.pathSize = -1;
         this.identificationVariable = identificationVariable;
         this.identificationVariable.setParent(this);
+        this.idExpression = false;
     }
 
     /**
@@ -108,6 +115,20 @@ public abstract class AbstractPathExpression extends AbstractExpression {
     protected AbstractPathExpression(AbstractExpression parent, String paths) {
         super(parent, paths);
         this.pathSize = -1;
+        this.idExpression = false;
+    }
+
+    /**
+     * Creates a new <code>AbstractPathExpression</code>.
+     *
+     * @param parent The parent of this expression
+     * @param paths The path expression
+     * @param idExpression Whether created from the JPQL ID function
+     */
+    protected AbstractPathExpression(AbstractExpression parent, String paths, boolean idExpression) {
+        super(parent, paths);
+        this.pathSize = -1;
+        this.idExpression = idExpression;
     }
 
     @Override
@@ -338,6 +359,13 @@ public abstract class AbstractPathExpression extends AbstractExpression {
      */
     public final boolean startsWithDot() {
         return startsWithDot;
+    }
+
+    /**
+     * Determines whether the path was created from JPQL ID function.
+     */
+    public boolean idExpression() {
+        return idExpression;
     }
 
     /**

@@ -19,6 +19,7 @@
 //       - Issue 1885: Implement new JPQLGrammar for upcoming Jakarta Persistence 3.2
 package org.eclipse.persistence.internal.jpa.jpql;
 
+import org.eclipse.persistence.descriptors.CMPPolicy;
 import org.eclipse.persistence.expressions.Expression;
 import org.eclipse.persistence.jpa.jpql.ExpressionTools;
 import org.eclipse.persistence.jpa.jpql.parser.AbsExpression;
@@ -632,6 +633,12 @@ final class ReportItemBuilder extends JPQLFunctionsAbstractBuilder {
         if (expression.getStateFieldPathExpressions().size() > 1) {
             //if multiple @Id attributes exists
             multipleSelects = true;
+        }
+        // Dead end: returnIdClass is not needed, we have to propagate this into ReportItem
+        // Check for PK class and set it as type to be returned by ContainerPolicy
+        CMPPolicy cmpPolicy = query.getDescriptor().getCMPPolicy();
+        if (cmpPolicy != null && cmpPolicy.getPKClass() != null) {
+            query.returnIdClass();
         }
     }
 

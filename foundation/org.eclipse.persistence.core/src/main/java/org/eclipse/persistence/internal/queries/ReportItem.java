@@ -52,8 +52,13 @@ public class ReportItem implements Cloneable, java.io.Serializable {
     /** Stores the row index for this item, given multiple results and joins */
     protected int resultIndex;
 
+    // This flag should indicate that this item was expanded from JPQL ID function
+    /** Determines whether the path was created from JPQL ID function (Jakarta Persistence 3.2). */
+    private boolean idExpression;
+
     public ReportItem() {
         super();
+        this.idExpression = false;
     }
 
     public ReportItem(String name, Expression attributeExpression) {
@@ -81,6 +86,22 @@ public class ReportItem implements Cloneable, java.io.Serializable {
 
     public ClassDescriptor getDescriptor(){
         return this.descriptor;
+    }
+
+    /**
+     * Determines whether the path was created from JPQL ID function.
+     */
+    public boolean isIdExpression() {
+        return idExpression;
+    }
+
+    /**
+     * Set whether the path was created from JPQL ID function.
+     *
+     * @param idExpression whether the path was created from JPQL ID function
+     */
+    public void setIdExpression(boolean idExpression) {
+        this.idExpression = idExpression;
     }
 
     /**
